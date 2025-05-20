@@ -1,1325 +1,986 @@
-{\rtf1\ansi\ansicpg950\cocoartf2822
-\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fnil\fcharset0 Menlo-Regular;\f1\fnil\fcharset136 PingFangTC-Regular;}
-{\colortbl;\red255\green255\blue255;\red0\green0\blue0;\red255\green255\blue255;\red72\green139\blue206;
-\red142\green213\blue255;\red203\green203\blue202;\red109\green109\blue109;\red194\green125\blue100;\red213\green213\blue212;
-\red112\green192\blue130;\red109\green116\blue120;\red167\green197\blue151;\red185\green113\blue249;\red54\green193\blue161;
-\red245\green122\blue46;\red164\green79\blue130;}
-{\*\expandedcolortbl;;\cssrgb\c0\c1\c1;\cssrgb\c100000\c100000\c99985\c0;\cssrgb\c34356\c61927\c84545;
-\cssrgb\c61729\c86919\c100000;\cssrgb\c83411\c83411\c83099;\cssrgb\c50361\c50361\c50173;\cssrgb\c80765\c56762\c46655;\cssrgb\c86559\c86558\c86234;
-\cssrgb\c50360\c78614\c57955;\cssrgb\c50406\c52769\c54541;\cssrgb\c71061\c80852\c65647;\cssrgb\c77992\c54903\c98229;\cssrgb\c24023\c79033\c69102;
-\cssrgb\c97614\c55867\c23343;\cssrgb\c70715\c40097\c58333;}
-\paperw11900\paperh16840\margl1440\margr1440\vieww12720\viewh7240\viewkind0
-\deftab720
-\pard\pardeftab720\partightenfactor0
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gloria老師班級的成績查詢系統</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f0f4f8; /* 淺藍灰色背景 */
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); /* 原始漸層 */
+        }
+        .teacher-info-bg {
+            background-color: #8B5CF6; /* 紫色背景 - Tailwind purple-500 */
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .class-badge {
+            transition: all 0.2s ease;
+        }
+        .class-badge:hover {
+            transform: translateY(-2px);
+        }
+        .class-badge.active {
+            box-shadow: 0 0 0 2px #4f46e5; /* 選定班級的靛藍色陰影 */
+        }
+        /* 自訂選擇箭頭 */
+        select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+        /* 表格樣式 */
+        table th, table td {
+            padding: 0.75rem; /* Tailwind p-3 */
+            text-align: left;
+            font-size: 0.875rem; /* Tailwind text-sm */
+        }
+        table th {
+            background-color: #f3f4f6; /* Tailwind gray-100 */
+            font-weight: 600; /* Tailwind font-semibold */
+            color: #374151; /* Tailwind gray-700 */
+        }
+        table td {
+            color: #1f2937; /* Tailwind gray-800 */
+        }
+        .table-container {
+            max-height: 400px; /* 限制表格最大高度，超出則滾動 */
+            overflow-y: auto;
+        }
+        .error-message {
+            color: #ef4444; /* Tailwind red-500 */
+            font-size: 0.875rem; /* text-sm */
+            margin-top: 0.25rem; /* mt-1 */
+        }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen flex flex-col">
+        <header class="gradient-bg text-white py-6 shadow-lg">
+            <div class="container mx-auto px-4">
+                <h1 class="text-3xl font-bold text-center">Gloria老師班級的成績查詢系統</h1>
+            </div>
+        </header>
 
-\f0\fs28 \cf2 \cb3 \expnd0\expndtw0\kerning0
-<!DOCTYPE html>\
-\pard\pardeftab720\partightenfactor0
-\cf2 <html lang="zh-TW">\
-<head>\
-    <meta charset="UTF-8">\
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">\
-    <title>Gloria
-\f1 \'a6\'d1\'ae\'76\'af\'5a\'af\'c5\'aa\'ba\'a6\'a8\'c1\'5a\'ac\'64\'b8\'df\'a8\'74\'b2\'ce
-\f0 </title>\
-    <script src="https://cdn.tailwindcss.com"></script>\
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">\
-    <style>\
-        body \{\
-            font-family: 'Noto Sans TC', sans-serif;\
-            background-color: #f0f4f8; /* 
-\f1 \'b2\'4c\'c2\'c5\'a6\'c7\'a6\'e2\'ad\'49\'b4\'ba
-\f0  */\
-        \}\
-        .gradient-bg \{\
-            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); /* 
-\f1 \'ad\'ec\'a9\'6c\'ba\'a5\'bc\'68
-\f0  */\
-        \}\
-        .teacher-info-bg \{\
-            background-color: #8B5CF6; /* 
-\f1 \'b5\'b5\'a6\'e2\'ad\'49\'b4\'ba
-\f0  - Tailwind purple-500 */\
-        \}\
-        .loading \{\
-            display: inline-block;\
-            width: 20px;\
-            height: 20px;\
-            border: 3px solid rgba(255,255,255,.3);\
-            border-radius: 50%;\
-            border-top-color: white;\
-            animation: spin 1s ease-in-out infinite;\
-        \}\
-        @keyframes spin \{\
-            to \{ transform: rotate(360deg); \}\
-        \}\
-        .fade-in \{\
-            animation: fadeIn 0.5s ease-in-out;\
-        \}\
-        @keyframes fadeIn \{\
-            from \{ opacity: 0; transform: translateY(20px); \}\
-            to \{ opacity: 1; transform: translateY(0); \}\
-        \}\
-        .class-badge \{\
-            transition: all 0.2s ease;\
-        \}\
-        .class-badge:hover \{\
-            transform: translateY(-2px);\
-        \}\
-        .class-badge.active \{\
-            box-shadow: 0 0 0 2px #4f46e5; /* 
-\f1 \'bf\'ef\'a9\'77\'af\'5a\'af\'c5\'aa\'ba\'c0\'51\'c2\'c5\'a6\'e2\'b3\'b1\'bc\'76
-\f0  */\
-        \}\
-        /* 
-\f1 \'a6\'db\'ad\'71\'bf\'ef\'be\'dc\'bd\'62\'c0\'59
-\f0  */\
-        select \{\
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");\
-            background-position: right 0.5rem center;\
-            background-repeat: no-repeat;\
-            background-size: 1.5em 1.5em;\
-            padding-right: 2.5rem;\
-            -webkit-appearance: none;\
-            -moz-appearance: none;\
-            appearance: none;\
-        \}\
-        /* 
-\f1 \'aa\'ed\'ae\'e6\'bc\'cb\'a6\'a1
-\f0  */\
-        table th, table td \{\
-            padding: 0.75rem; /* Tailwind p-3 */\
-            text-align: left;\
-            font-size: 0.875rem; /* Tailwind text-sm */\
-        \}\
-        table th \{\
-            background-color: #f3f4f6; /* Tailwind gray-100 */\
-            font-weight: 600; /* Tailwind font-semibold */\
-            color: #374151; /* Tailwind gray-700 */\
-        \}\
-        table td \{\
-            color: #1f2937; /* Tailwind gray-800 */\
-        \}\
-        .table-container \{\
-            max-height: 400px; /* 
-\f1 \'ad\'ad\'a8\'ee\'aa\'ed\'ae\'e6\'b3\'cc\'a4\'6a\'b0\'aa\'ab\'d7\'a1\'41\'b6\'57\'a5\'58\'ab\'68\'ba\'75\'b0\'ca
-\f0  */\
-            overflow-y: auto;\
-        \}\
-        .error-message \{\
-            color: #ef4444; /* Tailwind red-500 */\
-            font-size: 0.875rem; /* text-sm */\
-            margin-top: 0.25rem; /* mt-1 */\
-        \}\
-    </style>\
-</head>\
-<body>\
-    <div class="min-h-screen flex flex-col">\
-        <header class="gradient-bg text-white py-6 shadow-lg">\
-            <div class="container mx-auto px-4">\
-                <h1 class="text-3xl font-bold text-center">Gloria
-\f1 \'a6\'d1\'ae\'76\'af\'5a\'af\'c5\'aa\'ba\'a6\'a8\'c1\'5a\'ac\'64\'b8\'df\'a8\'74\'b2\'ce
-\f0 </h1>\
-            </div>\
-        </header>\
-\
-        <div class="teacher-info-bg text-white py-3 shadow-md">\
-            <div class="container mx-auto px-4 text-center">\
-                <p class="text-lg font-semibold">
-\f1 \'b1\'d0\'ae\'76\'a1\'47
-\f0 Gloria
-\f1 \'a7\'64\'a8\'71\'c4\'f5\'a6\'d1\'ae\'76
-\f0 , Google
-\f1 \'bb\'7b\'c3\'d2\'c1\'bf\'ae\'76
-\f0 , 
-\f1 \'ad\'5e\'a4\'e5\'ad\'dd\'a5\'78\'bb\'79\'b1\'d0\'ae\'76
-\f0 </p>\
-            </div>\
-        </div>\
-\
-        <main class="flex-grow container mx-auto px-4 py-8">\
-            <div class="max-w-4xl mx-auto">\
-                <div class="bg-white rounded-lg shadow-md p-6 mb-6">\
-                    <h2 class="text-xl font-semibold mb-4 text-gray-800">
-\f1 \'af\'5a\'af\'c5\'b8\'ea\'ae\'c6
-\f0 </h2>\
-                    <div class="flex flex-wrap gap-3 mb-4" id="classButtons">\
-                        \{/* 
-\f1 \'af\'5a\'af\'c5\'ab\'f6\'b6\'73
-\f0  (
-\f1 \'a6\'72\'a5\'64
-\f0 ) 
-\f1 \'b1\'4e\'a6\'62\'a6\'b9\'b0\'ca\'ba\'41\'a5\'5b\'a4\'4a
-\f0  */\}\
-                    </div>\
-                    <div class="flex flex-col sm:flex-row sm:justify-between items-center gap-3 mt-4">\
-                        <button type="button" id="importButton" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 px-6 rounded-md transition duration-300">\
-                            113-2
-\f1 \'a8\'54\'a8\'ae\'a4\'47\'b2\'c4\'a4\'47\'a6\'b8\'a9\'77\'b4\'c1\'a6\'d2\'ad\'d3\'a4\'48\'a6\'a8\'c1\'5a\'ac\'64\'b8\'df
-\f0 \
-                        </button>\
-                        <button type="button" id="manageClassesButton" class="w-full sm:w-auto bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-6 rounded-md transition duration-300 mt-2 sm:mt-0">\
-                            
-\f1 \'ba\'de\'b2\'7a\'a8\'e4\'a5\'4c\'af\'5a\'af\'c5\'b8\'ea\'ae\'c6
-\f0 \
-                        </button>\
-                    </div>\
-                </div>\
-\
-                <div class="bg-white rounded-lg shadow-md p-6 mb-8">\
-                    <h2 class="text-xl font-semibold mb-4 text-gray-800">
-\f1 \'bd\'d0\'bf\'ef\'be\'dc\'be\'c7\'a5\'cd\'ac\'64\'b8\'df
-\f0 </h2>\
-                    <form id="searchForm" class="space-y-4">\
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">\
-                            <div>\
-                                <label for="studentId" class="block text-sm font-medium text-gray-700 mb-1">
-\f1 \'be\'c7\'b8\'b9
-\f0 </label>\
-                                <select id="studentId" name="studentId" required\
-                                       class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">\
-                                    <option value="">
-\f1 \'bd\'d0\'a5\'fd\'bf\'ef\'be\'dc\'af\'5a\'af\'c5
-\f0 </option>\
-                                </select>\
-                            </div>\
-                            <div>\
-                                <label for="studentName" class="block text-sm font-medium text-gray-700 mb-1">
-\f1 \'a9\'6d\'a6\'57
-\f0 </label>\
-                                 <select id="studentName" name="studentName" required\
-                                       class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">\
-                                    <option value="">
-\f1 \'bd\'d0\'a5\'fd\'bf\'ef\'be\'dc\'af\'5a\'af\'c5
-\f0 </option>\
-                                </select>\
-                            </div>\
-                        </div>\
-                        <div>\
-                            <label for="studentEmail" class="block text-sm font-medium text-gray-700 mb-1">Email</label>\
-                            <input type="email" id="studentEmail" name="studentEmail" required\
-                                   class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"\
-                                   placeholder="
-\f1 \'bd\'d0\'bf\'e9\'a4\'4a\'be\'c7\'a5\'cd\'aa\'ba
-\f0 Email">\
-                            <p id="emailError" class="error-message hidden"></p>\
-                        </div>\
-                        <div class="flex justify-center pt-2">\
-                            <button type="submit" id="searchButton" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-6 rounded-md transition duration-300 flex items-center">\
-                                <span>
-\f1 \'ac\'64\'b8\'df\'a6\'a8\'c1\'5a
-\f0 </span>\
-                                <span id="loadingIcon" class="loading ml-2 hidden"></span>\
-                            </button>\
-                        </div>\
-                    </form>\
-                </div>\
-\
-                <div id="resultsSection" class="hidden fade-in">\
-                    <div class="bg-white rounded-lg shadow-md p-6 mb-6">\
-                        <div class="mb-4 pb-4 border-b border-gray-200">\
-                            <h2 class="text-2xl font-semibold text-gray-800">
-\f1 \'a6\'a8\'c1\'5a\'ac\'64\'b8\'df\'b5\'b2\'aa\'47
-\f0 </h2>\
-                            <p class="text-sm text-gray-500 mt-1" id="resultClassName">
-\f1 \'af\'5a\'af\'c5\'a1\'47
-\f0 --</p>\
-                        </div>\
-                        <div class="overflow-x-auto table-container">\
-                            <table class="min-w-full divide-y divide-gray-200">\
-                                <thead class="bg-gray-50 sticky top-0">\
-                                    <tr id="resultsTableHeader">\
-                                        </tr>\
-                                </thead>\
-                                <tbody class="bg-white divide-y divide-gray-200" id="resultsTableBody">\
-                                    </tbody>\
-                            </table>\
-                        </div>\
-                    </div>\
-                </div>\
-\
-                <div id="noResultsMessage" class="hidden bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center fade-in">\
-                    <svg class="w-12 h-12 text-yellow-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">\
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>\
-                    </svg>\
-                    <h3 class="text-lg font-medium text-gray-800 mb-2">
-\f1 \'ac\'64\'b5\'4c\'b8\'ea\'ae\'c6
-\f0 </h3>\
-                    <p class="text-gray-600">
-\f1 \'a7\'e4\'a4\'a3\'a8\'ec\'b2\'c5\'a6\'58\'aa\'ba\'be\'c7\'a5\'cd\'b8\'ea\'ae\'c6\'a1\'41\'bd\'d0\'bd\'54\'bb\'7b\'a9\'d2\'a6\'b3\'c4\'e6\'a6\'ec\'ac\'4f\'a7\'5f\'a5\'bf\'bd\'54\'a1\'41\'a9\'ce\'bd\'54\'bb\'7b\'a4\'77\'bf\'ef\'be\'dc\'a5\'bf\'bd\'54\'aa\'ba\'af\'5a\'af\'c5\'a1\'43
-\f0 </p>\
-                </div>\
-            </div>\
-        </main>\
-\
-        <footer class="bg-gray-800 text-white py-4 mt-auto">\
-            <div class="container mx-auto px-4 text-center text-sm">\
-                <p>\'a9 2025 
-\f1 \'be\'c7\'a5\'cd\'a6\'a8\'c1\'5a\'ac\'64\'b8\'df\'a8\'74\'b2\'ce
-\f0  | 
-\f1 \'bd\'d0\'a7\'b4\'b5\'bd\'ab\'4f\'ba\'de\'b1\'7a\'aa\'ba\'a6\'a8\'c1\'5a\'b8\'ea\'b0\'54
-\f0 </p>\
-            </div>\
-        </footer>\
-    </div>\
-\
-    <div id="importModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">\
-        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">\
-            <div class="flex justify-between items-center mb-4">\
-                <h3 class="text-xl font-semibold text-gray-800">
-\f1 \'b6\'d7\'a4\'4a\'a9\'77\'b4\'c1\'a6\'d2\'a6\'a8\'c1\'5a\'b8\'ea\'ae\'c6
-\f0 </h3>\
-                <button id="closeModalBtn" class="text-gray-500 hover:text-gray-700">\
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>\
-                </button>\
-            </div>\
-            <div class="mb-4">\
-                <label for="className" class="block text-sm font-medium text-gray-700 mb-2">
-\f1 \'a6\'d2\'b8\'d5
-\f0 /
-\f1 \'af\'5a\'af\'c5\'a6\'57\'ba\'d9
-\f0 </label>\
-                <input type="text" id="className" readonly\
-                       class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">\
-            </div>\
-            <div class="mb-2">\
-                <p class="text-sm text-gray-600">\
+        <div class="teacher-info-bg text-white py-3 shadow-md">
+            <div class="container mx-auto px-4 text-center">
+                <p class="text-lg font-semibold">教師：Gloria吳秀蘭老師, Google認證講師, 英文兼台語教師</p>
+            </div>
+        </div>
+
+        <main class="flex-grow container mx-auto px-4 py-8">
+            <div class="max-w-4xl mx-auto">
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-800">班級資料</h2>
+                    <div class="flex flex-wrap gap-3 mb-4" id="classButtons">
+                        {/* 班級按鈕 (字卡) 將在此動態加入 */}
+                    </div>
+                    <div class="flex flex-col sm:flex-row sm:justify-between items-center gap-3 mt-4">
+                        <button type="button" id="importButton" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 px-6 rounded-md transition duration-300">
+                            113-2汽車二第二次定期考個人成績查詢
+                        </button>
+                        <button type="button" id="manageClassesButton" class="w-full sm:w-auto bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-6 rounded-md transition duration-300 mt-2 sm:mt-0">
+                            管理其他班級資料
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-800">請選擇學生查詢</h2>
+                    <form id="searchForm" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="studentId" class="block text-sm font-medium text-gray-700 mb-1">學號</label>
+                                <select id="studentId" name="studentId" required
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                    <option value="">請先選擇班級</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="studentName" class="block text-sm font-medium text-gray-700 mb-1">姓名</label>
+                                 <select id="studentName" name="studentName" required
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                    <option value="">請先選擇班級</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="studentEmail" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                            <input type="email" id="studentEmail" name="studentEmail" required
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                   placeholder="請輸入學生的Email">
+                            <p id="emailError" class="error-message hidden"></p>
+                        </div>
+                        <div class="flex justify-center pt-2">
+                            <button type="submit" id="searchButton" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-6 rounded-md transition duration-300 flex items-center">
+                                <span>查詢成績</span>
+                                <span id="loadingIcon" class="loading ml-2 hidden"></span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div id="resultsSection" class="hidden fade-in">
+                    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                        <div class="mb-4 pb-4 border-b border-gray-200">
+                            <h2 class="text-2xl font-semibold text-gray-800">成績查詢結果</h2>
+                            <p class="text-sm text-gray-500 mt-1" id="resultClassName">班級：--</p>
+                        </div>
+                        <div class="overflow-x-auto table-container">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50 sticky top-0">
+                                    <tr id="resultsTableHeader">
+                                        </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200" id="resultsTableBody">
+                                    </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="noResultsMessage" class="hidden bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center fade-in">
+                    <svg class="w-12 h-12 text-yellow-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                    <h3 class="text-lg font-medium text-gray-800 mb-2">查無資料</h3>
+                    <p class="text-gray-600">找不到符合的學生資料，請確認所有欄位是否正確，或確認已選擇正確的班級。</p>
+                </div>
+            </div>
+        </main>
+
+        <footer class="bg-gray-800 text-white py-4 mt-auto">
+            <div class="container mx-auto px-4 text-center text-sm">
+                <p>© 2025 學生成績查詢系統 | 請妥善保管您的成績資訊</p>
+            </div>
+        </footer>
+    </div>
+
+    <div id="importModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-semibold text-gray-800">匯入定期考成績資料</h3>
+                <button id="closeModalBtn" class="text-gray-500 hover:text-gray-700">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div class="mb-4">
+                <label for="className" class="block text-sm font-medium text-gray-700 mb-2">考試/班級名稱</label>
+                <input type="text" id="className" readonly
+                       class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div class="mb-2">
+                <p class="text-sm text-gray-600">
+                    請先將您的 Google 試算表資料匯出為 CSV 格式檔案。
+                </p>
+                <p class="text-xs text-gray-500 mt-1">
+                    (在 Google 試算表中：檔案 -> 下載 -> 逗號分隔值 (.csv))<br>
+                    CSV 檔案需包含 "Email" 欄位，且欄位順序與範例一致。
+                </p>
+            </div>
+            <div class="mb-4">
+                <label for="csvFile" class="block text-sm font-medium text-gray-700 mb-2">選擇 CSV 檔案</label>
+                <input type="file" id="csvFile" accept=".csv"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+            </div>
+            <div class="flex justify-end">
+                <button id="confirmImportBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition duration-300">
+                    匯入資料
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="manageClassesModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-semibold text-gray-800">管理其他班級資料</h3>
+                <button id="closeManageModalBtn" class="text-gray-500 hover:text-gray-700">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div class="mb-4">
+                <p class="text-gray-600 mb-2">已匯入的班級資料：</p>
+                <ul id="classesList" class="border border-gray-200 rounded-md divide-y divide-gray-200 max-h-60 overflow-y-auto">
+                    </ul>
+            </div>
+            <div class="flex justify-end">
+                <button id="closeManageBtn" class="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-md transition duration-300">
+                    關閉
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Firebase SDK imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, getDocs, onSnapshot, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase configuration (provided by the Canvas environment)
+        // These will be undefined if not running in the Canvas environment, so a fallback is used.
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-grade-system-app'; 
+
+        // Firebase app, auth, db instances and user ID
+        let app;
+        let auth;
+        let db;
+        let userId; 
+
+        // Local data store for class information
+        let classData = {}; 
+        let currentClass = null; // Currently selected class name
+
+        // DOM Element References
+        const searchForm = document.getElementById('searchForm');
+        const studentIdDropdown = document.getElementById('studentId');
+        const studentNameDropdown = document.getElementById('studentName');
+        const studentEmailInput = document.getElementById('studentEmail');
+        const emailError = document.getElementById('emailError');
+        const searchButton = document.getElementById('searchButton');
+        const loadingIcon = document.getElementById('loadingIcon');
+        const importButton = document.getElementById('importButton'); // Button for specific exam import
+        const importModal = document.getElementById('importModal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const confirmImportBtn = document.getElementById('confirmImportBtn');
+        const csvFileInput = document.getElementById('csvFile');
+        const classNameInput = document.getElementById('className'); // Input for class name in import modal
+        const resultsSection = document.getElementById('resultsSection');
+        const resultsTableHeader = document.getElementById('resultsTableHeader');
+        const resultsTableBody = document.getElementById('resultsTableBody');
+        const noResultsMessage = document.getElementById('noResultsMessage');
+        const classButtons = document.getElementById('classButtons'); // Container for class selection buttons
+        const manageClassesButton = document.getElementById('manageClassesButton'); // Button to open manage classes modal
+        const manageClassesModal = document.getElementById('manageClassesModal');
+        const closeManageModalBtn = document.getElementById('closeManageModalBtn');
+        const closeManageBtn = document.getElementById('closeManageBtn');
+        const classesList = document.getElementById('classesList'); // UL element in manage classes modal
+        const resultClassNameDisplay = document.getElementById('resultClassName'); // Displays current class in results
+
+        // Firestore collection path for public class data
+        const classesCollectionPath = `/artifacts/${appId}/public/data/classes`;
+        const FIXED_CLASS_NAME = "113-2汽車二第二次定期考"; // Fixed class name for the primary import button
+
+        // Initialize Firebase connection and authentication
+        async function initializeFirebase() {
+            if (!firebaseConfig) {
+                console.error("Firebase configuration is missing. Using fallback data.");
+                showAlert("系統設定錯誤，無法連接資料庫。將載入範例資料。", "error");
+                addSampleDataAsFallback(); // Load local sample data
+                updateClassButtons(); // Update UI with local data
+                 if (currentClass && classData[currentClass]) {
+                    selectClass(currentClass);
+                } else if (Object.keys(classData).length > 0) {
+                    selectClass(Object.keys(classData)[0]);
+                } else {
+                    updateStudentSearchDropdowns(); // Ensure dropdowns are in a sensible state
+                }
+                return false; // Indicate Firebase is not ready
+            }
+            try {
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+                // setLogLevel('debug');  // Enable for Firestore debugging if needed
+
+                // Wait for authentication state to be determined
+                await new Promise((resolve, reject) => {
+                    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+                        unsubscribe(); // Stop listening after first check
+                        if (user) {
+                            userId = user.uid;
+                            console.log("User is signed in with UID:", userId);
+                            resolve(user);
+                        } else {
+                            // Attempt to sign in if no user
+                            try {
+                                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                                    await signInWithCustomToken(auth, __initial_auth_token);
+                                    console.log("Signed in with custom token.");
+                                } else {
+                                    await signInAnonymously(auth);
+                                    console.log("Signed in anonymously.");
+                                }
+                                userId = auth.currentUser.uid;
+                                console.log("Current User UID:", userId);
+                                resolve(auth.currentUser);
+                            } catch (error) {
+                                console.error("Error during sign-in:", error);
+                                showAlert("登入失敗，無法存取資料庫。將載入範例資料。", "error");
+                                reject(error);
+                            }
+                        }
+                    }, error => { // Handle errors from onAuthStateChanged itself
+                        console.error("onAuthStateChanged error:", error);
+                        showAlert("驗證狀態檢查失敗。將載入範例資料。", "error");
+                        reject(error);
+                    });
+                });
+                return true; // Indicate Firebase is ready
+            } catch (error) {
+                console.error("Firebase initialization failed:", error);
+                showAlert("資料庫初始化失敗。將載入範例資料。", "error");
+                addSampleDataAsFallback(); // Load local sample data on failure
+                updateClassButtons();
+                return false; // Indicate Firebase is not ready
+            }
+        }
+
+        // Save class data (students array) to Firestore
+        async function saveClassToFirestore(className, students) {
+            if (!db) { showAlert("資料庫未連接，無法儲存資料。", "error"); return; }
+            const classDocRef = doc(db, classesCollectionPath, className);
+            try {
+                await setDoc(classDocRef, { students: students });
+                console.log(`Class "${className}" saved to Firestore.`);
+            } catch (error) {
+                console.error("Error saving class to Firestore:", error);
+                showAlert(`儲存班級 "${className}" 資料失敗：${error.message}`, "error");
+            }
+        }
+
+        // Load all class data from Firestore
+        async function loadAllClassesFromFirestore() {
+            if (!db) { 
+                console.warn("Database not connected. Cannot load classes from Firestore."); 
+                return {}; // Return empty if DB not available
+            }
+            const loadedData = {};
+            try {
+                const querySnapshot = await getDocs(collection(db, classesCollectionPath));
+                querySnapshot.forEach((doc) => {
+                    loadedData[doc.id] = doc.data().students || []; // Store students array by class name (doc.id)
+                });
+                console.log("Classes loaded from Firestore:", loadedData);
+                return loadedData;
+            } catch (error) {
+                console.error("Error loading classes from Firestore:", error);
+                showAlert("讀取班級資料失敗。", "error");
+                return {}; // Return empty on error
+            }
+        }
+
+        // Delete a class from Firestore
+        async function deleteClassFromFirestore(className) {
+            if (!db) { showAlert("資料庫未連接，無法刪除資料。", "error"); return; }
+            const classDocRef = doc(db, classesCollectionPath, className);
+            try {
+                await deleteDoc(classDocRef);
+                console.log(`Class "${className}" deleted from Firestore.`);
+            } catch (error) {
+                console.error("Error deleting class from Firestore:", error);
+                showAlert(`刪除班級 "${className}" 資料失敗。`, "error");
+            }
+        }
+        
+        // Event Listeners
+        searchForm.addEventListener('submit', handleSearch);
+        importButton.addEventListener('click', openImportModal);
+        closeModalBtn.addEventListener('click', closeImportModal);
+        confirmImportBtn.addEventListener('click', importCSV);
+        manageClassesButton.addEventListener('click', openManageClassesModal);
+        closeManageModalBtn.addEventListener('click', closeManageClassesModal);
+        closeManageBtn.addEventListener('click', closeManageClassesModal);
+        studentIdDropdown.addEventListener('change', syncNameToId);
+        studentNameDropdown.addEventListener('change', syncIdToName);
+        studentEmailInput.addEventListener('input', () => { // Clear email error on input
+            emailError.classList.add('hidden');
+            emailError.textContent = '';
+        });
+
+        // Simple alert function (can be replaced with a custom modal later)
+        function showAlert(message, type = 'info') {
+            // Using browser alert for simplicity, replace with custom UI if needed
+            alert(message); 
+            console.log(`Alert (${type}): ${message}`);
+        }
+
+        // Handle student search submission
+        function handleSearch(e) {
+            e.preventDefault();
+            const studentId = studentIdDropdown.value;
+            const studentNameValue = studentNameDropdown.value;
+            const studentEmail = studentEmailInput.value.trim();
+
+            // Clear previous email error
+            emailError.classList.add('hidden');
+            emailError.textContent = '';
+
+            // Validations
+            if (!studentId || !studentNameValue) { showAlert('請選擇學號和姓名。', 'error'); return; }
+            if (!studentEmail) { 
+                emailError.textContent = '請輸入 Email。'; 
+                emailError.classList.remove('hidden'); 
+                return; 
+            }
+            if (!currentClass) { showAlert('請先選擇班級。', 'error'); return; }
+
+            // UI updates for loading state
+            loadingIcon.classList.remove('hidden');
+            searchButton.disabled = true;
+
+            // Simulate API call delay
+            setTimeout(() => { 
+                const student = findStudentById(studentId); // Find student in current class data
+                
+                if (student && student.name === studentNameValue) { // Check if ID and Name match
+                    if (student.email && student.email.toLowerCase() === studentEmail.toLowerCase()) { // Check email
+                        displayResults(student);
+                        resultsSection.classList.remove('hidden');
+                        noResultsMessage.classList.add('hidden');
+                    } else {
+                        emailError.textContent = 'Email 錯誤或與所選學生不符。';
+                        emailError.classList.remove('hidden');
+                        resultsSection.classList.add('hidden');
+                        noResultsMessage.classList.remove('hidden');
+                        // Clear previous results if email is wrong
+                        resultsTableHeader.innerHTML = ''; resultsTableBody.innerHTML = ''; resultClassNameDisplay.textContent = '班級：--';
+                    }
+                } else {
+                    // Student not found or ID/Name mismatch
+                    resultsSection.classList.add('hidden');
+                    noResultsMessage.classList.remove('hidden');
+                    resultsTableHeader.innerHTML = ''; resultsTableBody.innerHTML = ''; resultClassNameDisplay.textContent = '班級：--';
+                }
+                // Reset loading state
+                loadingIcon.classList.add('hidden');
+                searchButton.disabled = false;
+            }, 800); // 0.8 second delay
+        }
+
+        // Find a student by ID in the current selected class
+        function findStudentById(id) {
+            if (!currentClass || !classData[currentClass]) return null;
+            return classData[currentClass].find(student => student.id === id);
+        }
+
+        // Find a student by name in the current selected class
+        function findStudentByName(name) {
+            if (!currentClass || !classData[currentClass]) return null;
+            return classData[currentClass].find(student => student.name === name);
+        }
+
+        // Display student's grades in the results table
+        function displayResults(student) {
+            resultsTableHeader.innerHTML = ''; // Clear previous headers
+            resultsTableBody.innerHTML = '';   // Clear previous body
+            resultClassNameDisplay.textContent = `班級：${currentClass || '--'}`;
+
+            // Define table headers and corresponding data keys from student object
+            const headers = ["座號", "姓名", "學號", "數學Ⅳ", "地理", "應用力學", "國語文Ⅳ", "英語文Ⅳ", "柴油引擎原理", "班排名", "科組排名", "科年排名", "一般總分", "一般平均", "加權平均", "加權總分"];
+            const dataKeys = ['seatNumber', 'name', 'id', 'math4', 'geography', 'appliedMechanics', 'chinese4', 'english4', 'dieselEnginePrinciples', 'classRank', 'departmentGroupRank', 'departmentYearRank', 'generalTotalScore', 'generalAverageScore', 'weightedAverageScore', 'weightedTotalScore'];
+
+            // Create table header row
+            headers.forEach(headerText => {
+                const th = document.createElement('th');
+                th.scope = 'col';
+                th.className = 'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider';
+                th.textContent = headerText;
+                resultsTableHeader.appendChild(th);
+            });
+
+            // Create table data row
+            const tr = document.createElement('tr');
+            dataKeys.forEach(key => {
+                const td = document.createElement('td');
+                td.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-900';
+                td.textContent = student[key] || '--'; // Display '--' if data is missing
+                tr.appendChild(td);
+            });
+            resultsTableBody.appendChild(tr);
+        }
+
+        // Open the CSV import modal
+        function openImportModal() {
+            importModal.classList.remove('hidden');
+            classNameInput.value = FIXED_CLASS_NAME; // Set to the fixed class name for the main import button
+            classNameInput.readOnly = true; // Make it read-only for this specific import
+            csvFileInput.value = ''; // Clear any previously selected file
+        }
+        // Close the CSV import modal
+        function closeImportModal() { importModal.classList.add('hidden'); }
+
+        // Open the manage classes modal
+        function openManageClassesModal() {
+            updateClassesList(); // Populate the list of classes
+            manageClassesModal.classList.remove('hidden');
+        }
+        // Close the manage classes modal
+        function closeManageClassesModal() { manageClassesModal.classList.add('hidden'); }
+
+        // Handle CSV file import
+        async function importCSV() { 
+            const file = csvFileInput.files[0];
+            const targetClassName = classNameInput.value.trim(); // Class name from the input (should be FIXED_CLASS_NAME here)
+
+            if (!file) { showAlert('請選擇 CSV 檔案。', 'error'); return; }
+            if (!targetClassName) { showAlert('班級名稱無效。', 'error'); return; } // Should not happen with readOnly input
+
+            // Confirm overwrite if class data already exists
+            if (classData.hasOwnProperty(targetClassName)) {
+                 if (!confirm(`確定要覆蓋 "${targetClassName}" 的現有資料嗎？`)) return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = async function(e) { 
+                try {
+                    const csvData = e.target.result;
+                    const students = processCSVData(csvData, targetClassName); // Process the CSV content
                     
-\f1 \'bd\'d0\'a5\'fd\'b1\'4e\'b1\'7a\'aa\'ba
-\f0  Google 
-\f1 \'b8\'d5\'ba\'e2\'aa\'ed\'b8\'ea\'ae\'c6\'b6\'d7\'a5\'58\'ac\'b0
-\f0  CSV 
-\f1 \'ae\'e6\'a6\'a1\'c0\'c9\'ae\'d7\'a1\'43
-\f0 \
-                </p>\
-                <p class="text-xs text-gray-500 mt-1">\
-                    (
-\f1 \'a6\'62
-\f0  Google 
-\f1 \'b8\'d5\'ba\'e2\'aa\'ed\'a4\'a4\'a1\'47\'c0\'c9\'ae\'d7
-\f0  -> 
-\f1 \'a4\'55\'b8\'fc
-\f0  -> 
-\f1 \'b3\'72\'b8\'b9\'a4\'c0\'b9\'6a\'ad\'c8
-\f0  (.csv))<br>\
-                    CSV 
-\f1 \'c0\'c9\'ae\'d7\'bb\'dd\'a5\'5d\'a7\'74
-\f0  "Email" 
-\f1 \'c4\'e6\'a6\'ec\'a1\'41\'a5\'42\'c4\'e6\'a6\'ec\'b6\'b6\'a7\'c7\'bb\'50\'bd\'64\'a8\'d2\'a4\'40\'ad\'50\'a1\'43
-\f0 \
-                </p>\
-            </div>\
-            <div class="mb-4">\
-                <label for="csvFile" class="block text-sm font-medium text-gray-700 mb-2">
-\f1 \'bf\'ef\'be\'dc
-\f0  CSV 
-\f1 \'c0\'c9\'ae\'d7
-\f0 </label>\
-                <input type="file" id="csvFile" accept=".csv"\
-                       class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">\
-            </div>\
-            <div class="flex justify-end">\
-                <button id="confirmImportBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md transition duration-300">\
-                    
-\f1 \'b6\'d7\'a4\'4a\'b8\'ea\'ae\'c6
-\f0 \
-                </button>\
-            </div>\
-        </div>\
-    </div>\
-\
-    <div id="manageClassesModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">\
-        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">\
-            <div class="flex justify-between items-center mb-4">\
-                <h3 class="text-xl font-semibold text-gray-800">
-\f1 \'ba\'de\'b2\'7a\'a8\'e4\'a5\'4c\'af\'5a\'af\'c5\'b8\'ea\'ae\'c6
-\f0 </h3>\
-                <button id="closeManageModalBtn" class="text-gray-500 hover:text-gray-700">\
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>\
-                </button>\
-            </div>\
-            <div class="mb-4">\
-                <p class="text-gray-600 mb-2">
-\f1 \'a4\'77\'b6\'d7\'a4\'4a\'aa\'ba\'af\'5a\'af\'c5\'b8\'ea\'ae\'c6\'a1\'47
-\f0 </p>\
-                <ul id="classesList" class="border border-gray-200 rounded-md divide-y divide-gray-200 max-h-60 overflow-y-auto">\
-                    </ul>\
-            </div>\
-            <div class="flex justify-end">\
-                <button id="closeManageBtn" class="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-md transition duration-300">\
-                    
-\f1 \'c3\'f6\'b3\'ac
-\f0 \
-                </button>\
-            </div>\
-        </div>\
-    </div>\
-\
-    <script type="module">\
-        // Firebase SDK imports\
-        import \{ initializeApp \} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";\
-        import \{ getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged \} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";\
-        import \{ getFirestore, doc, getDoc, setDoc, deleteDoc, collection, getDocs, onSnapshot, setLogLevel \} from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";\
-\
-        // Firebase configuration (provided by the Canvas environment)\
-        // These will be undefined if not running in the Canvas environment, so a fallback is used.\
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;\
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-grade-system-app'; \
-\
-        // Firebase app, auth, db instances and user ID\
-        let app;\
-        let auth;\
-        let db;\
-        let userId; \
-\
-        // Local data store for class information\
-        let classData = \{\}; \
-        let currentClass = null; // Currently selected class name\
-\
-        // DOM Element References\
-        const searchForm = document.getElementById('searchForm');\
-        const studentIdDropdown = document.getElementById('studentId');\
-        const studentNameDropdown = document.getElementById('studentName');\
-        const studentEmailInput = document.getElementById('studentEmail');\
-        const emailError = document.getElementById('emailError');\
-        const searchButton = document.getElementById('searchButton');\
-        const loadingIcon = document.getElementById('loadingIcon');\
-        const importButton = document.getElementById('importButton'); // Button for specific exam import\
-        const importModal = document.getElementById('importModal');\
-        const closeModalBtn = document.getElementById('closeModalBtn');\
-        const confirmImportBtn = document.getElementById('confirmImportBtn');\
-        const csvFileInput = document.getElementById('csvFile');\
-        const classNameInput = document.getElementById('className'); // Input for class name in import modal\
-        const resultsSection = document.getElementById('resultsSection');\
-        const resultsTableHeader = document.getElementById('resultsTableHeader');\
-        const resultsTableBody = document.getElementById('resultsTableBody');\
-        const noResultsMessage = document.getElementById('noResultsMessage');\
-        const classButtons = document.getElementById('classButtons'); // Container for class selection buttons\
-        const manageClassesButton = document.getElementById('manageClassesButton'); // Button to open manage classes modal\
-        const manageClassesModal = document.getElementById('manageClassesModal');\
-        const closeManageModalBtn = document.getElementById('closeManageModalBtn');\
-        const closeManageBtn = document.getElementById('closeManageBtn');\
-        const classesList = document.getElementById('classesList'); // UL element in manage classes modal\
-        const resultClassNameDisplay = document.getElementById('resultClassName'); // Displays current class in results\
-\
-        // Firestore collection path for public class data\
-        const classesCollectionPath = `/artifacts/$\{appId\}/public/data/classes`;\
-        const FIXED_CLASS_NAME = "113-2
-\f1 \'a8\'54\'a8\'ae\'a4\'47\'b2\'c4\'a4\'47\'a6\'b8\'a9\'77\'b4\'c1\'a6\'d2
-\f0 "; // Fixed class name for the primary import button\
-\
-        // Initialize Firebase connection and authentication\
-        async function initializeFirebase() \{\
-            if (!firebaseConfig) \{\
-                console.error("Firebase configuration is missing. Using fallback data.");\
-                showAlert("
-\f1 \'a8\'74\'b2\'ce\'b3\'5d\'a9\'77\'bf\'f9\'bb\'7e\'a1\'41\'b5\'4c\'aa\'6b\'b3\'73\'b1\'b5\'b8\'ea\'ae\'c6\'ae\'77\'a1\'43\'b1\'4e\'b8\'fc\'a4\'4a\'bd\'64\'a8\'d2\'b8\'ea\'ae\'c6\'a1\'43
-\f0 ", "error");\
-                addSampleDataAsFallback(); // Load local sample data\
-                updateClassButtons(); // Update UI with local data\
-                 if (currentClass && classData[currentClass]) \{\
-                    selectClass(currentClass);\
-                \} else if (Object.keys(classData).length > 0) \{\
-                    selectClass(Object.keys(classData)[0]);\
-                \} else \{\
-                    updateStudentSearchDropdowns(); // Ensure dropdowns are in a sensible state\
-                \}\
-                return false; // Indicate Firebase is not ready\
-            \}\
-            try \{\
-                app = initializeApp(firebaseConfig);\
-                auth = getAuth(app);\
-                db = getFirestore(app);\
-                // setLogLevel('debug');  // Enable for Firestore debugging if needed\
-\
-                // Wait for authentication state to be determined\
-                await new Promise((resolve, reject) => \{\
-                    const unsubscribe = onAuthStateChanged(auth, async (user) => \{\
-                        unsubscribe(); // Stop listening after first check\
-                        if (user) \{\
-                            userId = user.uid;\
-                            console.log("User is signed in with UID:", userId);\
-                            resolve(user);\
-                        \} else \{\
-                            // Attempt to sign in if no user\
-                            try \{\
-                                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) \{\
-                                    await signInWithCustomToken(auth, __initial_auth_token);\
-                                    console.log("Signed in with custom token.");\
-                                \} else \{\
-                                    await signInAnonymously(auth);\
-                                    console.log("Signed in anonymously.");\
-                                \}\
-                                userId = auth.currentUser.uid;\
-                                console.log("Current User UID:", userId);\
-                                resolve(auth.currentUser);\
-                            \} catch (error) \{\
-                                console.error("Error during sign-in:", error);\
-                                showAlert("
-\f1 \'b5\'6e\'a4\'4a\'a5\'a2\'b1\'d1\'a1\'41\'b5\'4c\'aa\'6b\'a6\'73\'a8\'fa\'b8\'ea\'ae\'c6\'ae\'77\'a1\'43\'b1\'4e\'b8\'fc\'a4\'4a\'bd\'64\'a8\'d2\'b8\'ea\'ae\'c6\'a1\'43
-\f0 ", "error");\
-                                reject(error);\
-                            \}\
-                        \}\
-                    \}, error => \{ // Handle errors from onAuthStateChanged itself\
-                        console.error("onAuthStateChanged error:", error);\
-                        showAlert("
-\f1 \'c5\'e7\'c3\'d2\'aa\'ac\'ba\'41\'c0\'cb\'ac\'64\'a5\'a2\'b1\'d1\'a1\'43\'b1\'4e\'b8\'fc\'a4\'4a\'bd\'64\'a8\'d2\'b8\'ea\'ae\'c6\'a1\'43
-\f0 ", "error");\
-                        reject(error);\
-                    \});\
-                \});\
-                return true; // Indicate Firebase is ready\
-            \} catch (error) \{\
-                console.error("Firebase initialization failed:", error);\
-                showAlert("
-\f1 \'b8\'ea\'ae\'c6\'ae\'77\'aa\'ec\'a9\'6c\'a4\'c6\'a5\'a2\'b1\'d1\'a1\'43\'b1\'4e\'b8\'fc\'a4\'4a\'bd\'64\'a8\'d2\'b8\'ea\'ae\'c6\'a1\'43
-\f0 ", "error");\
-                addSampleDataAsFallback(); // Load local sample data on failure\
-                updateClassButtons();\
-                return false; // Indicate Firebase is not ready\
-            \}\
-        \}\
-\
-        // Save class data (students array) to Firestore\
-        async function saveClassToFirestore(className, students) \{\
-            if (!db) \{ showAlert("
-\f1 \'b8\'ea\'ae\'c6\'ae\'77\'a5\'bc\'b3\'73\'b1\'b5\'a1\'41\'b5\'4c\'aa\'6b\'c0\'78\'a6\'73\'b8\'ea\'ae\'c6\'a1\'43
-\f0 ", "error"); return; \}\
-            const classDocRef = doc(db, classesCollectionPath, className);\
-            try \{\
-                await setDoc(classDocRef, \{ students: students \});\
-                console.log(`Class "$\{className\}" saved to Firestore.`);\
-            \} catch (error) \{\
-                console.error("Error saving class to Firestore:", error);\
-                showAlert(`
-\f1 \'c0\'78\'a6\'73\'af\'5a\'af\'c5
-\f0  "$\{className\}" 
-\f1 \'b8\'ea\'ae\'c6\'a5\'a2\'b1\'d1\'a1\'47
-\f0 $\{error.message\}`, "error");\
-            \}\
-        \}\
-\
-        // Load all class data from Firestore\
-        async function loadAllClassesFromFirestore() \{\
-            if (!db) \{ \
-                console.warn("Database not connected. Cannot load classes from Firestore."); \
-                return \{\}; // Return empty if DB not available\
-            \}\
-            const loadedData = \{\};\
-            try \{\
-                const querySnapshot = await getDocs(collection(db, classesCollectionPath));\
-                querySnapshot.forEach((doc) => \{\
-                    loadedData[doc.id] = doc.data().students || []; // Store students array by class name (doc.id)\
-                \});\
-                console.log("Classes loaded from Firestore:", loadedData);\
-                return loadedData;\
-            \} catch (error) \{\
-                console.error("Error loading classes from Firestore:", error);\
-                showAlert("
-\f1 \'c5\'aa\'a8\'fa\'af\'5a\'af\'c5\'b8\'ea\'ae\'c6\'a5\'a2\'b1\'d1\'a1\'43
-\f0 ", "error");\
-                return \{\}; // Return empty on error\
-            \}\
-        \}\
-\
-        // Delete a class from Firestore\
-        async function deleteClassFromFirestore(className) \{\
-            if (!db) \{ showAlert("
-\f1 \'b8\'ea\'ae\'c6\'ae\'77\'a5\'bc\'b3\'73\'b1\'b5\'a1\'41\'b5\'4c\'aa\'6b\'a7\'52\'b0\'a3\'b8\'ea\'ae\'c6\'a1\'43
-\f0 ", "error"); return; \}\
-            const classDocRef = doc(db, classesCollectionPath, className);\
-            try \{\
-                await deleteDoc(classDocRef);\
-                console.log(`Class "$\{className\}" deleted from Firestore.`);\
-            \} catch (error) \{\
-                console.error("Error deleting class from Firestore:", error);\
-                showAlert(`
-\f1 \'a7\'52\'b0\'a3\'af\'5a\'af\'c5
-\f0  "$\{className\}" 
-\f1 \'b8\'ea\'ae\'c6\'a5\'a2\'b1\'d1\'a1\'43
-\f0 `, "error");\
-            \}\
-        \}\
-        \
-        // Event Listeners\
-        searchForm.addEventListener('submit', handleSearch);\
-        importButton.addEventListener('click', openImportModal);\
-        closeModalBtn.addEventListener('click', closeImportModal);\
-        confirmImportBtn.addEventListener('click', importCSV);\
-        manageClassesButton.addEventListener('click', openManageClassesModal);\
-        closeManageModalBtn.addEventListener('click', closeManageClassesModal);\
-        closeManageBtn.addEventListener('click', closeManageClassesModal);\
-        studentIdDropdown.addEventListener('change', syncNameToId);\
-        studentNameDropdown.addEventListener('change', syncIdToName);\
-        studentEmailInput.addEventListener('input', () => \{ // Clear email error on input\
-            emailError.classList.add('hidden');\
-            emailError.textContent = '';\
-        \});\
-\
-        // Simple alert function (can be replaced with a custom modal later)\
-        function showAlert(message, type = 'info') \{\
-            // Using browser alert for simplicity, replace with custom UI if needed\
-            alert(message); \
-            console.log(`Alert ($\{type\}): $\{message\}`);\
-        \}\
-\
-        // Handle student search submission\
-        function handleSearch(e) \{\
-            e.preventDefault();\
-            const studentId = studentIdDropdown.value;\
-            const studentNameValue = studentNameDropdown.value;\
-            const studentEmail = studentEmailInput.value.trim();\
-\
-            // Clear previous email error\
-            emailError.classList.add('hidden');\
-            emailError.textContent = '';\
-\
-            // Validations\
-            if (!studentId || !studentNameValue) \{ showAlert('
-\f1 \'bd\'d0\'bf\'ef\'be\'dc\'be\'c7\'b8\'b9\'a9\'4d\'a9\'6d\'a6\'57\'a1\'43
-\f0 ', 'error'); return; \}\
-            if (!studentEmail) \{ \
-                emailError.textContent = '
-\f1 \'bd\'d0\'bf\'e9\'a4\'4a
-\f0  Email
-\f1 \'a1\'43
-\f0 '; \
-                emailError.classList.remove('hidden'); \
-                return; \
-            \}\
-            if (!currentClass) \{ showAlert('
-\f1 \'bd\'d0\'a5\'fd\'bf\'ef\'be\'dc\'af\'5a\'af\'c5\'a1\'43
-\f0 ', 'error'); return; \}\
-\
-            // UI updates for loading state\
-            loadingIcon.classList.remove('hidden');\
-            searchButton.disabled = true;\
-\
-            // Simulate API call delay\
-            setTimeout(() => \{ \
-                const student = findStudentById(studentId); // Find student in current class data\
-                \
-                if (student && student.name === studentNameValue) \{ // Check if ID and Name match\
-                    if (student.email && student.email.toLowerCase() === studentEmail.toLowerCase()) \{ // Check email\
-                        displayResults(student);\
-                        resultsSection.classList.remove('hidden');\
-                        noResultsMessage.classList.add('hidden');\
-                    \} else \{\
-                        emailError.textContent = 'Email 
-\f1 \'bf\'f9\'bb\'7e\'a9\'ce\'bb\'50\'a9\'d2\'bf\'ef\'be\'c7\'a5\'cd\'a4\'a3\'b2\'c5\'a1\'43
-\f0 ';\
-                        emailError.classList.remove('hidden');\
-                        resultsSection.classList.add('hidden');\
-                        noResultsMessage.classList.remove('hidden');\
-                        // Clear previous results if email is wrong\
-                        resultsTableHeader.innerHTML = ''; resultsTableBody.innerHTML = ''; resultClassNameDisplay.textContent = '
-\f1 \'af\'5a\'af\'c5\'a1\'47
-\f0 --';\
-                    \}\
-                \} else \{\
-                    // Student not found or ID/Name mismatch\
-                    resultsSection.classList.add('hidden');\
-                    noResultsMessage.classList.remove('hidden');\
-                    resultsTableHeader.innerHTML = ''; resultsTableBody.innerHTML = ''; resultClassNameDisplay.textContent = '
-\f1 \'af\'5a\'af\'c5\'a1\'47
-\f0 --';\
-                \}\
-                // Reset loading state\
-                loadingIcon.classList.add('hidden');\
-                searchButton.disabled = false;\
-            \}, 800); // 0.8 second delay\
-        \}\
-\
-        // Find a student by ID in the current selected class\
-        function findStudentById(id) \{\
-            if (!currentClass || !classData[currentClass]) return null;\
-            return classData[currentClass].find(student => student.id === id);\
-        \}\
-\
-        // Find a student by name in the current selected class\
-        function findStudentByName(name) \{\
-            if (!currentClass || !classData[currentClass]) return null;\
-            return classData[currentClass].find(student => student.name === name);\
-        \}\
-\
-        // Display student's grades in the results table\
-        function displayResults(student) \{\
-            resultsTableHeader.innerHTML = ''; // Clear previous headers\
-            resultsTableBody.innerHTML = '';   // Clear previous body\
-            resultClassNameDisplay.textContent = `
-\f1 \'af\'5a\'af\'c5\'a1\'47
-\f0 $\{currentClass || '--'\}`;\
-\
-            // Define table headers and corresponding data keys from student object\
-            const headers = ["
-\f1 \'ae\'79\'b8\'b9
-\f0 ", "
-\f1 \'a9\'6d\'a6\'57
-\f0 ", "
-\f1 \'be\'c7\'b8\'b9
-\f0 ", "
-\f1 \'bc\'c6\'be\'c7\'a2\'bc
-\f0 ", "
-\f1 \'a6\'61\'b2\'7a
-\f0 ", "
-\f1 \'c0\'b3\'a5\'ce\'a4\'4f\'be\'c7
-\f0 ", "
-\f1 \'b0\'ea\'bb\'79\'a4\'e5\'a2\'bc
-\f0 ", "
-\f1 \'ad\'5e\'bb\'79\'a4\'e5\'a2\'bc
-\f0 ", "
-\f1 \'ae\'e3\'aa\'6f\'a4\'de\'c0\'ba\'ad\'ec\'b2\'7a
-\f0 ", "
-\f1 \'af\'5a\'b1\'c6\'a6\'57
-\f0 ", "
-\f1 \'ac\'ec\'b2\'d5\'b1\'c6\'a6\'57
-\f0 ", "
-\f1 \'ac\'ec\'a6\'7e\'b1\'c6\'a6\'57
-\f0 ", "
-\f1 \'a4\'40\'af\'eb\'c1\'60\'a4\'c0
-\f0 ", "
-\f1 \'a4\'40\'af\'eb\'a5\'ad\'a7\'a1
-\f0 ", "
-\f1 \'a5\'5b\'c5\'76\'a5\'ad\'a7\'a1
-\f0 ", "
-\f1 \'a5\'5b\'c5\'76\'c1\'60\'a4\'c0
-\f0 "];\
-            const dataKeys = ['seatNumber', 'name', 'id', 'math4', 'geography', 'appliedMechanics', 'chinese4', 'english4', 'dieselEnginePrinciples', 'classRank', 'departmentGroupRank', 'departmentYearRank', 'generalTotalScore', 'generalAverageScore', 'weightedAverageScore', 'weightedTotalScore'];\
-\
-            // Create table header row\
-            headers.forEach(headerText => \{\
-                const th = document.createElement('th');\
-                th.scope = 'col';\
-                th.className = 'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider';\
-                th.textContent = headerText;\
-                resultsTableHeader.appendChild(th);\
-            \});\
-\
-            // Create table data row\
-            const tr = document.createElement('tr');\
-            dataKeys.forEach(key => \{\
-                const td = document.createElement('td');\
-                td.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-900';\
-                td.textContent = student[key] || '--'; // Display '--' if data is missing\
-                tr.appendChild(td);\
-            \});\
-            resultsTableBody.appendChild(tr);\
-        \}\
-\
-        // Open the CSV import modal\
-        function openImportModal() \{\
-            importModal.classList.remove('hidden');\
-            classNameInput.value = FIXED_CLASS_NAME; // Set to the fixed class name for the main import button\
-            classNameInput.readOnly = true; // Make it read-only for this specific import\
-            csvFileInput.value = ''; // Clear any previously selected file\
-        \}\
-        // Close the CSV import modal\
-        function closeImportModal() \{ importModal.classList.add('hidden'); \}\
-\
-        // Open the manage classes modal\
-        function openManageClassesModal() \{\
-            updateClassesList(); // Populate the list of classes\
-            manageClassesModal.classList.remove('hidden');\
-        \}\
-        // Close the manage classes modal\
-        function closeManageClassesModal() \{ manageClassesModal.classList.add('hidden'); \}\
-\
-        // Handle CSV file import\
-        async function importCSV() \{ \
-            const file = csvFileInput.files[0];\
-            const targetClassName = classNameInput.value.trim(); // Class name from the input (should be FIXED_CLASS_NAME here)\
-\
-            if (!file) \{ showAlert('
-\f1 \'bd\'d0\'bf\'ef\'be\'dc
-\f0  CSV 
-\f1 \'c0\'c9\'ae\'d7\'a1\'43
-\f0 ', 'error'); return; \}\
-            if (!targetClassName) \{ showAlert('
-\f1 \'af\'5a\'af\'c5\'a6\'57\'ba\'d9\'b5\'4c\'ae\'c4\'a1\'43
-\f0 ', 'error'); return; \} // Should not happen with readOnly input\
-\
-            // Confirm overwrite if class data already exists\
-            if (classData.hasOwnProperty(targetClassName)) \{\
-                 if (!confirm(`
-\f1 \'bd\'54\'a9\'77\'ad\'6e\'c2\'d0\'bb\'5c
-\f0  "$\{targetClassName\}" 
-\f1 \'aa\'ba\'b2\'7b\'a6\'b3\'b8\'ea\'ae\'c6\'b6\'dc\'a1\'48
-\f0 `)) return;\
-            \}\
-\
-            const reader = new FileReader();\
-            reader.onload = async function(e) \{ \
-                try \{\
-                    const csvData = e.target.result;\
-                    const students = processCSVData(csvData, targetClassName); // Process the CSV content\
-                    \
-                    if (students && students.length > 0) \{ // Ensure students were processed\
-                        await saveClassToFirestore(targetClassName, students); // Save to Firebase\
-                        classData[targetClassName] = students; // Update local data store\
-                        \
-                        closeImportModal();\
-                        updateClassButtons(); // Refresh class buttons on main page\
-                        selectClass(targetClassName); // Automatically select the newly imported class\
-                        showAlert(`$\{targetClassName\} 
-\f1 \'b8\'ea\'ae\'c6\'b6\'d7\'a4\'4a\'a8\'c3\'c0\'78\'a6\'73\'a6\'a8\'a5\'5c\'a1\'49
-\f0 `, 'success');\
-                    \} else \{\
-                         showAlert(`
-\f1 \'b3\'42\'b2\'7a
-\f0  $\{targetClassName\} CSV 
-\f1 \'b8\'ea\'ae\'c6\'a5\'a2\'b1\'d1\'a1\'41\'a5\'bc\'a7\'e4\'a8\'ec\'a6\'b3\'ae\'c4\'be\'c7\'a5\'cd\'a9\'ce\'c0\'c9\'ae\'d7\'ae\'e6\'a6\'a1\'bf\'f9\'bb\'7e\'a1\'43
-\f0 `, 'error');\
-                    \}\
-                \} catch (error) \{\
-                    console.error("CSV 
-\f1 \'b6\'d7\'a4\'4a\'bf\'f9\'bb\'7e
-\f0 :", error);\
-                    showAlert(`
-\f1 \'b6\'d7\'a4\'4a\'a5\'a2\'b1\'d1\'a1\'47
-\f0 $\{error.message\}`, 'error');\
-                \}\
-            \};\
-            reader.onerror = function() \{\
-                console.error("FileReader 
-\f1 \'bf\'f9\'bb\'7e
-\f0 :", reader.error);\
-                showAlert('
-\f1 \'c5\'aa\'a8\'fa\'c0\'c9\'ae\'d7\'a5\'a2\'b1\'d1\'a1\'43
-\f0 ', 'error');\
-            \};\
-            reader.readAsText(file); // Read file as text\
-        \}\
-\
-        // Process raw CSV text into an array of student objects\
-        function processCSVData(csvText, targetClassName) \{ \
-            const lines = csvText.split(/\\r\\n|\\n/).filter(line => line.trim()); // Split into lines, remove empty lines\
-            if (lines.length < 2) throw new Error("CSV 
-\f1 \'c0\'c9\'ae\'d7\'a6\'dc\'a4\'d6\'bb\'dd\'ad\'6e\'a5\'5d\'a7\'74\'bc\'d0\'c0\'59\'a9\'4d\'a4\'40\'a6\'e6\'b8\'ea\'ae\'c6\'a1\'43
-\f0 ");\
-\
-            const headers = parseCSVLine(lines[0]); // Parse the header row\
-            // Check for mandatory 'Email' column (case-insensitive)\
-            if (!headers.map(h => h.trim().toLowerCase()).includes('email')) \{\
-                throw new Error("CSV 
-\f1 \'c0\'c9\'ae\'d7\'a4\'a4\'af\'ca\'a4\'d6
-\f0  'Email' 
-\f1 \'c4\'e6\'a6\'ec\'a1\'43\'bd\'d0\'bd\'54\'bb\'7b\'b1\'7a\'aa\'ba
-\f0  CSV 
-\f1 \'c0\'c9\'ae\'d7\'a5\'5d\'a7\'74\'a6\'b9\'c4\'e6\'a6\'ec\'a1\'43
-\f0 ");\
-            \}\
-\
-            const students = [];\
-            for (let i = 1; i < lines.length; i++) \{ // Start from second line (data)\
-                const values = parseCSVLine(lines[i]);\
-                if (values.length === headers.length) \{ // Ensure data row has same number of columns as header\
-                    const student = \{\};\
-                    headers.forEach((header, index) => \{\
-                        const cleanHeader = header.trim(); // Trim whitespace from header\
-                        const value = values[index] ? values[index].trim() : ''; // Trim whitespace from value\
-                        const lowerCleanHeader = cleanHeader.toLowerCase(); // For case-insensitive matching\
-\
-                        // Map CSV headers to student object properties\
-                        switch(lowerCleanHeader) \{\
-                            case '
-\f1 \'ae\'79\'b8\'b9
-\f0 ': student.seatNumber = value; break;\
-                            case '
-\f1 \'a9\'6d\'a6\'57
-\f0 ': student.name = value; break;\
-                            case '
-\f1 \'be\'c7\'b8\'b9
-\f0 ': student.id = value; break;\
-                            case 'email': student.email = value; break; // Ensure email is captured\
-                            case '
-\f1 \'bc\'c6\'be\'c7\uc0\u8563 
-\f0 ': case '
-\f1 \'bc\'c6\'be\'c7
-\f0 iv': student.math4 = value; break;\
-                            case '
-\f1 \'a6\'61\'b2\'7a
-\f0 ': student.geography = value; break;\
-                            case '
-\f1 \'c0\'b3\'a5\'ce\'a4\'4f\'be\'c7
-\f0 ': student.appliedMechanics = value; break;\
-                            case '
-\f1 \'b0\'ea\'bb\'79\'a4\'e5\uc0\u8563 
-\f0 ': case '
-\f1 \'b0\'ea\'bb\'79\'a4\'e5
-\f0 iv': student.chinese4 = value; break;\
-                            case '
-\f1 \'ad\'5e\'bb\'79\'a4\'e5\uc0\u8563 
-\f0 ': case '
-\f1 \'ad\'5e\'bb\'79\'a4\'e5
-\f0 iv': student.english4 = value; break;\
-                            case '
-\f1 \'ae\'e3\'aa\'6f\'a4\'de\'c0\'ba\'ad\'ec\'b2\'7a
-\f0 ': student.dieselEnginePrinciples = value; break;\
-                            case '
-\f1 \'af\'5a\'b1\'c6\'a6\'57
-\f0 ': student.classRank = value; break;\
-                            case '
-\f1 \'ac\'ec\'b2\'d5\'b1\'c6\'a6\'57
-\f0 ': student.departmentGroupRank = value; break;\
-                            case '
-\f1 \'ac\'ec\'a6\'7e\'b1\'c6\'a6\'57
-\f0 ': student.departmentYearRank = value; break;\
-                            case '
-\f1 \'a4\'40\'af\'eb\'c1\'60\'a4\'c0
-\f0 ': student.generalTotalScore = value; break;\
-                            case '
-\f1 \'a4\'40\'af\'eb\'a5\'ad\'a7\'a1
-\f0 ': student.generalAverageScore = value; break;\
-                            case '
-\f1 \'a5\'5b\'c5\'76\'c1\'60\'a4\'c0
-\f0 ': student.weightedTotalScore = value; break;\
-                            case '
-\f1 \'a5\'5b\'c5\'76\'a5\'ad\'a7\'a1
-\f0 ': student.weightedAverageScore = value; break;\
-                            // Add other subject mappings here if needed\
-                            default: break; // Ignore other columns\
-                        \}\
-                    \});\
-                    // Basic validation for essential student fields\
-                    if (student.id && student.name && student.seatNumber && student.email) \{\
-                        students.push(student);\
-                    \} else \{\
-                        console.warn("
-\f1 \'a6\'5d\'af\'ca\'a4\'d6\'a5\'b2\'ad\'6e\'c4\'e6\'a6\'ec
-\f0  (
-\f1 \'be\'c7\'b8\'b9
-\f0 , 
-\f1 \'a9\'6d\'a6\'57
-\f0 , 
-\f1 \'ae\'79\'b8\'b9
-\f0 , Email) 
-\f1 \'a6\'d3\'b8\'f5\'b9\'4c\'a6\'b9\'be\'c7\'a5\'cd\'b8\'ea\'ae\'c6
-\f0 :", student, "
-\f1 \'a9\'f3\'b2\'c4
-\f0 ", i + 1, "
-\f1 \'a6\'e6
-\f0 ");\
-                    \}\
-                \} else \{\
-                     console.warn(`
-\f1 \'a6\'5d\'c4\'e6\'a6\'ec\'bc\'c6
-\f0  ($\{values.length\}) 
-\f1 \'a4\'a3\'b2\'c5\'bc\'d0\'c0\'59\'bc\'c6
-\f0  ($\{headers.length\}) 
-\f1 \'a6\'d3\'b8\'f5\'b9\'4c\'b2\'c4
-\f0  $\{i+1\} 
-\f1 \'a6\'e6\'a1\'43
-\f0 `);\
-                \}\
-            \}\
-            if (students.length === 0 && lines.length > 1) \{ // If there were data lines but no valid students processed\
-                console.warn("CSV 
-\f1 \'c0\'c9\'ae\'d7\'a4\'a4\'a5\'bc\'a7\'e4\'a8\'ec\'a6\'b3\'ae\'c4\'aa\'ba\'be\'c7\'a5\'cd\'b8\'ea\'ae\'c6\'a1\'43\'bd\'d0\'c0\'cb\'ac\'64\'c4\'e6\'a6\'ec\'a6\'57\'ba\'d9\'bb\'50\'a4\'ba\'ae\'65\'a1\'43
-\f0 ");\
-                // Optionally throw an error here or return null to indicate failure\
-                // throw new Error("CSV 
-\f1 \'c0\'c9\'ae\'d7\'a4\'a4\'a5\'bc\'a7\'e4\'a8\'ec\'a6\'b3\'ae\'c4\'aa\'ba\'be\'c7\'a5\'cd\'b8\'ea\'ae\'c6\'a1\'43
-\f0 ");\
-                return null; \
-            \}\
-            return students; \
-        \}\
-\
-        // Parses a single line of CSV, handling quoted fields and escaped quotes.\
-        function parseCSVLine(line) \{ \
-            const result = [];\
-            let startPos = 0;\
-            let inQuotes = false;\
-            for (let i = 0; i < line.length; i++) \{\
-                if (line[i] === '"') \{\
-                    // If it's an escaped quote (two double quotes), skip the first one\
-                    if (inQuotes && i + 1 < line.length && line[i+1] === '"') \{ \
-                        i++; \
-                    \} else \{ // Otherwise, toggle the inQuotes state\
-                        inQuotes = !inQuotes; \
-                    \}\
-                \} else if (line[i] === ',' && !inQuotes) \{ // If it's a comma and not inside quotes, it's a field delimiter\
-                    let field = line.substring(startPos, i);\
-                    // Remove surrounding quotes if they exist (and are not escaped)\
-                    if (field.startsWith('"') && field.endsWith('"')) \{\
-                        field = field.substring(1, field.length - 1);\
-                    \}\
-                    result.push(field.replace(/""/g, '"')); // Replace escaped double quotes with single double quote\
-                    startPos = i + 1; // Move start position for next field\
-                \}\
-            \}\
-            // Add the last field\
-            let lastField = line.substring(startPos);\
-            if (lastField.startsWith('"') && lastField.endsWith('"')) \{\
-                lastField = lastField.substring(1, lastField.length - 1);\
-            \}\
-            result.push(lastField.replace(/""/g, '"'));\
-            return result;\
-        \}\
-\
-        // Update the class selection buttons on the main page\
-        function updateClassButtons() \{\
-            classButtons.innerHTML = ''; // Clear existing buttons\
-            const classNames = Object.keys(classData);\
-\
-            if (classNames.length === 0) \{\
-                const message = document.createElement('p');\
-                message.className = 'text-gray-500 text-sm';\
-                message.textContent = '
-\f1 \'a5\'d8\'ab\'65\'b5\'4c\'a4\'77\'b6\'d7\'a4\'4a\'aa\'ba\'a6\'a8\'c1\'5a\'b8\'ea\'ae\'c6\'a1\'43\'bd\'d0\'a8\'cf\'a5\'ce\'a4\'57\'a4\'e8\'ab\'f6\'b6\'73\'b6\'d7\'a4\'4a\'a1\'43
-\f0 ';\
-                classButtons.appendChild(message);\
-                updateStudentSearchDropdowns(); // Ensure dropdowns are cleared/disabled\
-                return;\
-            \}\
-\
-            classNames.forEach(className => \{\
-                const button = document.createElement('button');\
-                button.type = 'button';\
-                // Apply 'active' styles if this is the currently selected class\
-                button.className = `class-badge px-4 py-2 rounded-full text-sm font-medium transition-colors duration-150 ease-in-out $\{currentClass === className ? 'bg-indigo-600 text-white border border-transparent active' : 'bg-gray-100 text-gray-800 border border-gray-200 hover:bg-indigo-100 hover:text-indigo-800'\}`;\
-                button.textContent = className;\
-                button.onclick = () => selectClass(className);\
-                classButtons.appendChild(button);\
-            \});\
-        \}\
-\
-        // Handle selection of a class\
-        function selectClass(className) \{\
-            currentClass = className;\
-            saveCurrentClassSelectionToLocalStorage(className); // Persist selection\
-\
-            // Update styles for all class buttons to reflect the new selection\
-            document.querySelectorAll('#classButtons .class-badge').forEach(badge => \{\
-                const isSelected = badge.textContent === className;\
-                badge.classList.toggle('bg-indigo-600', isSelected);\
-                badge.classList.toggle('text-white', isSelected);\
-                badge.classList.toggle('border-transparent', isSelected);\
-                badge.classList.toggle('active', isSelected); // For box-shadow\
-                badge.classList.toggle('bg-gray-100', !isSelected);\
-                badge.classList.toggle('text-gray-800', !isSelected);\
-                badge.classList.toggle('border-gray-200', !isSelected);\
-                badge.classList.toggle('hover:bg-indigo-100', !isSelected);\
-                badge.classList.toggle('hover:text-indigo-800', !isSelected);\
-            \});\
-\
-            // Reset search results and form fields\
-            resultsSection.classList.add('hidden');\
-            noResultsMessage.classList.add('hidden');\
-            resultsTableHeader.innerHTML = '';\
-            resultsTableBody.innerHTML = '';\
-            studentEmailInput.value = '';\
-            emailError.classList.add('hidden');\
-            updateStudentSearchDropdowns(); // Populate dropdowns for the new class\
-        \}\
-\
-        // Update student ID and Name dropdowns based on the selected class\
-        function updateStudentSearchDropdowns() \{ \
-            studentIdDropdown.innerHTML = '';   // Clear ID dropdown\
-            studentNameDropdown.innerHTML = ''; // Clear Name dropdown\
-            studentEmailInput.value = '';       // Clear Email input\
-            emailError.classList.add('hidden'); // Hide email error\
-\
-            // Add default placeholder options\
-            const defaultIdOption = document.createElement('option');\
-            defaultIdOption.value = ""; defaultIdOption.textContent = "
-\f1 \'bd\'d0\'bf\'ef\'be\'dc\'be\'c7\'b8\'b9
-\f0 ";\
-            studentIdDropdown.appendChild(defaultIdOption);\
-            const defaultNameOption = document.createElement('option');\
-            defaultNameOption.value = ""; defaultNameOption.textContent = "
-\f1 \'bd\'d0\'bf\'ef\'be\'dc\'a9\'6d\'a6\'57
-\f0 ";\
-            studentNameDropdown.appendChild(defaultNameOption);\
-\
-            if (currentClass && classData[currentClass]) \{\
-                const studentsInClass = [...classData[currentClass]]; // Create a copy to sort\
-                // Sort students by seat number, then by ID\
-                studentsInClass.sort((a, b) => \{\
-                    const seatA = parseInt(a.seatNumber, 10); \
-                    const seatB = parseInt(b.seatNumber, 10);\
-                    if (!isNaN(seatA) && !isNaN(seatB)) \{ // If both seat numbers are valid numbers\
-                        if (seatA < seatB) return -1; \
-                        if (seatA > seatB) return 1;\
-                    \} else if (!isNaN(seatA)) \{ // Only A is a number, A comes first\
-                        return -1;\
-                    \} else if (!isNaN(seatB)) \{ // Only B is a number, B comes first\
-                        return 1;\
-                    \}\
-                    // Fallback to ID sort if seat numbers are same or not numbers\
-                    if (a.id < b.id) return -1; \
-                    if (a.id > b.id) return 1;\
-                    return 0;\
-                \});\
-\
-                studentsInClass.forEach(student => \{\
-                    if (student.id) \{ // Add to ID dropdown\
-                        const optionId = document.createElement('option');\
-                        optionId.value = student.id;\
-                        optionId.textContent = `$\{student.seatNumber || '
-\f1 \'b5\'4c\'ae\'79\'b8\'b9
-\f0 '\} - $\{student.id\}`;\
-                        studentIdDropdown.appendChild(optionId);\
-                    \}\
-                    if (student.name) \{ // Add to Name dropdown\
-                        const optionName = document.createElement('option');\
-                        optionName.value = student.name; // Value is name\
-                        optionName.textContent = `$\{student.seatNumber || '
-\f1 \'b5\'4c\'ae\'79\'b8\'b9
-\f0 '\} - $\{student.name\} ($\{student.id\})`;\
-                        optionName.dataset.studentId = student.id; // Store ID in dataset for syncing\
-                        studentNameDropdown.appendChild(optionName);\
-                    \}\
-                \});\
-            \} else \{\
-                // If no class selected or no data for class, update placeholder text\
-                studentIdDropdown.options[0].textContent = "
-\f1 \'bd\'d0\'a5\'fd\'bf\'ef\'be\'dc\'af\'5a\'af\'c5
-\f0 ";\
-                studentNameDropdown.options[0].textContent = "
-\f1 \'bd\'d0\'a5\'fd\'bf\'ef\'be\'dc\'af\'5a\'af\'c5
-\f0 ";\
-            \}\
-        \}\
-\
-        // Sync Name dropdown when ID dropdown changes\
-        function syncNameToId() \{ \
-            const selectedId = studentIdDropdown.value;\
-            studentEmailInput.value = ''; emailError.classList.add('hidden'); // Clear email on change\
-\
-            if (selectedId && currentClass && classData[currentClass]) \{\
-                const student = findStudentById(selectedId); // Find student by the selected ID\
-                if (student) \{\
-                    // Find the matching option in the Name dropdown (using dataset.studentId)\
-                    for(let i=0; i < studentNameDropdown.options.length; i++) \{\
-                        if(studentNameDropdown.options[i].dataset.studentId === student.id) \{\
-                            studentNameDropdown.selectedIndex = i; \
-                            break;\
-                        \}\
-                    \}\
-                \} else \{ \
-                    studentNameDropdown.value = ""; // If student not found (should not happen if data is consistent)\
-                \}\
-            \} else if (!selectedId) \{ // If "
-\f1 \'bd\'d0\'bf\'ef\'be\'dc\'be\'c7\'b8\'b9
-\f0 " is chosen\
-                studentNameDropdown.value = ""; \
-            \}\
-        \}\
-\
-        // Sync ID dropdown when Name dropdown changes\
-        function syncIdToName() \{ \
-            const selectedNameOption = studentNameDropdown.options[studentNameDropdown.selectedIndex];\
-            studentEmailInput.value = ''; emailError.classList.add('hidden'); // Clear email on change\
-\
-            if (selectedNameOption && selectedNameOption.value && currentClass && classData[currentClass]) \{\
-                const studentIdToSync = selectedNameOption.dataset.studentId; // Get ID from dataset\
-                if(studentIdToSync) \{ \
-                    studentIdDropdown.value = studentIdToSync; \
-                \} else \{ // Fallback if dataset.studentId is missing (should not happen with current setup)\
-                    const student = findStudentByName(selectedNameOption.value);\
-                    if (student) studentIdDropdown.value = student.id; else studentIdDropdown.value = "";\
-                \}\
-            \} else if (!selectedNameOption || !selectedNameOption.value) \{ // If "
-\f1 \'bd\'d0\'bf\'ef\'be\'dc\'a9\'6d\'a6\'57
-\f0 " is chosen\
-                studentIdDropdown.value = ""; \
-            \}\
-        \}\
-\
-        // Update the list of classes in the "Manage Classes" modal\
-        function updateClassesList() \{ \
-            classesList.innerHTML = ''; // Clear current list\
-            const classNames = Object.keys(classData);\
-\
-            if (classNames.length === 0) \{\
-                const messageItem = document.createElement('li');\
-                messageItem.className = 'p-3 text-center text-gray-500';\
-                messageItem.textContent = '
-\f1 \'a9\'7c\'a5\'bc\'b6\'d7\'a4\'4a\'a5\'f4\'a6\'f3\'af\'5a\'af\'c5\'b8\'ea\'ae\'c6
-\f0 ';\
-                classesList.appendChild(messageItem); \
-                return;\
-            \}\
-\
-            classNames.forEach(className => \{\
-                const listItem = document.createElement('li');\
-                listItem.className = 'flex justify-between items-center p-3 hover:bg-gray-50';\
-                \
-                const classInfo = document.createElement('div');\
-                classInfo.innerHTML = `<p class="font-medium text-gray-800">$\{className\}</p><p class="text-sm text-gray-500">$\{classData[className] ? classData[className].length : 0\} 
-\f1 \'a6\'ec\'be\'c7\'a5\'cd
-\f0 </p>`;\
-                \
-                const deleteButton = document.createElement('button');\
-                deleteButton.type = 'button';\
-                deleteButton.className = 'text-red-500 hover:text-red-700 p-1 rounded-md hover:bg-red-100 transition-colors';\
-                deleteButton.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>`;\
-                deleteButton.setAttribute('aria-label', `
-\f1 \'a7\'52\'b0\'a3
-\f0  $\{className\} 
-\f1 \'af\'5a\'af\'c5
-\f0 `);\
-                deleteButton.onclick = () => deleteClass(className); \
-                \
-                listItem.appendChild(classInfo);\
-                listItem.appendChild(deleteButton);\
-                classesList.appendChild(listItem);\
-            \});\
-        \}\
-\
-        // Delete a class (from local data and Firestore)\
-        async function deleteClass(className) \{ \
-            if (confirm(`
-\f1 \'bd\'54\'a9\'77\'ad\'6e\'a7\'52\'b0\'a3
-\f0  "$\{className\}" 
-\f1 \'aa\'ba\'a9\'d2\'a6\'b3\'be\'c7\'a5\'cd\'b8\'ea\'ae\'c6\'b6\'dc\'a1\'48\'a6\'b9\'be\'de\'a7\'40\'b1\'4e\'b1\'71\'b8\'ea\'ae\'c6\'ae\'77\'a4\'a4\'a5\'c3\'a4\'5b\'b2\'be\'b0\'a3\'a1\'41\'b5\'4c\'aa\'6b\'b4\'5f\'ad\'ec\'a1\'43
-\f0 `)) \{\
-                await deleteClassFromFirestore(className); // Delete from Firebase\
-                delete classData[className]; // Delete from local store\
-\
-                // If the deleted class was the currently selected one, select another or none\
-                if (currentClass === className) \{\
-                    currentClass = Object.keys(classData)[0] || null; // Select first available, or null\
-                    if (currentClass) \{\
-                        selectClass(currentClass);\
-                    \} else \{\
-                        // No classes left, clear dropdowns and local storage for current class\
-                        updateStudentSearchDropdowns(); \
-                        saveCurrentClassSelectionToLocalStorage(null); \
-                    \}\
-                \}\
-                updateClassesList();    // Refresh list in manage modal\
-                updateClassButtons();   // Refresh buttons on main page\
-\
-                // If no class is selected after deletion, hide results\
-                if (!currentClass) \{\
-                    resultsSection.classList.add('hidden');\
-                    noResultsMessage.classList.add('hidden');\
-                    resultsTableHeader.innerHTML = '';\
-                    resultsTableBody.innerHTML = '';\
-                \}\
-                showAlert(`
-\f1 \'af\'5a\'af\'c5
-\f0  "$\{className\}" 
-\f1 \'a4\'77\'a6\'a8\'a5\'5c\'a7\'52\'b0\'a3\'a1\'43
-\f0 `, 'success');\
-            \}\
-        \}\
-\
-        // Save the currently selected class name to localStorage\
-        function saveCurrentClassSelectionToLocalStorage(className) \{\
-            try \{\
-                if (className) \{\
-                    localStorage.setItem('gradeSystemCurrentClass_Gloria_v5', className);\
-                \} else \{\
-                    localStorage.removeItem('gradeSystemCurrentClass_Gloria_v5');\
-                \}\
-            \} catch (e) \{\
-                console.error('
-\f1 \'b5\'4c\'aa\'6b\'c0\'78\'a6\'73\'a5\'d8\'ab\'65\'af\'5a\'af\'c5\'bf\'ef\'be\'dc\'a8\'ec
-\f0  localStorage:', e);\
-            \}\
-        \}\
-\
-        // Load the last selected class name from localStorage\
-        function loadCurrentClassSelectionFromLocalStorage() \{\
-            try \{\
-                return localStorage.getItem('gradeSystemCurrentClass_Gloria_v5');\
-            \} catch (e) \{\
-                console.error('
-\f1 \'b5\'4c\'aa\'6b\'b1\'71
-\f0  localStorage 
-\f1 \'b8\'fc\'a4\'4a\'a5\'d8\'ab\'65\'af\'5a\'af\'c5\'bf\'ef\'be\'dc
-\f0 :', e);\
-                return null;\
-            \}\
-        \}\
-        \
-        // Add sample data as a fallback if Firebase is unavailable or empty initially\
-        function addSampleDataAsFallback() \{ \
-            // Only add if classData is empty AND db is not available (or initial load failed)\
-            if (Object.keys(classData).length > 0 && db) return; \
-\
-            // Define sample data structure\
-            classData = \{\
-                "
-\f1 \'a8\'54\'a8\'ae\'a4\'47\'a5\'d2
-\f0  (
-\f1 \'bd\'64\'a8\'d2\'b8\'ea\'ae\'c6
-\f0 )": [ \
-                    \{ seatNumber: "1", name: "
-\f1 \'a4\'fd\'a4\'6a\'a9\'fa
-\f0 ", id: "A001", email: "wang.daming@example.com", math4: "88", geography: "75", appliedMechanics: "90", chinese4: "82", english4: "79", dieselEnginePrinciples: "91", classRank: "2", departmentGroupRank: "3", departmentYearRank: "5", generalTotalScore: "605", generalAverageScore: "86.43", weightedAverageScore: "87.00", weightedTotalScore: "609"  \},\
-                    \{ seatNumber: "5", name: "
-\f1 \'a7\'f5\'a4\'70\'ac\'fc
-\f0 ", id: "A005", email: "li.xiaomei@example.com", math4: "72", geography: "85", appliedMechanics: "78", chinese4: "88", english4: "92", dieselEnginePrinciples: "80", classRank: "8", departmentGroupRank: "12", departmentYearRank: "20", generalTotalScore: "595", generalAverageScore: "85.00", weightedAverageScore: "85.50", weightedTotalScore: "598.5" \}\
-                ],\
-                 "
-\f1 \'b9\'71\'be\'f7\'a4\'40\'a4\'41
-\f0  (
-\f1 \'bd\'64\'a8\'d2\'b8\'ea\'ae\'c6
-\f0 )": [ \
-                    \{ seatNumber: "3", name: "
-\f1 \'b3\'af\'a7\'d3\'a9\'fa
-\f0 ", id: "B003", email: "chen.zhiming@example.com", math4: "92", geography: "80", appliedMechanics: "85", chinese4: "78", english4: "88", dieselEnginePrinciples: "N/A", classRank: "1", departmentGroupRank: "1", departmentYearRank: "2", generalTotalScore: "623", generalAverageScore: "89.00", weightedAverageScore: "89.50", weightedTotalScore: "626.5"  \}\
-                ]\
-            \};\
-            console.log("Fallback sample data loaded locally for demonstration.");\
-        \}\
-\
-        // Main initialization function, called on DOMContentLoaded\
-        async function init() \{\
-            const firebaseReady = await initializeFirebase();\
-\
-            if (firebaseReady) \{\
-                classData = await loadAllClassesFromFirestore(); // Load data from Firebase\
-                if (Object.keys(classData).length === 0) \{\
-                    console.log("Firestore is empty. Please use the import button to add data for '" + FIXED_CLASS_NAME + "' or manage other classes.");\
-                    // No automatic sample data addition to Firestore on initial empty load.\
-                    // User is guided to import data.\
-                    // If you still want sample data locally if Firestore is empty, call addSampleDataAsFallback() here.\
-                    // addSampleDataAsFallback(); // Uncomment if local sample needed when Firestore is empty\
-                \}\
-            \} else \{\
-                 // Firebase not ready, addSampleDataAsFallback should have been called within initializeFirebase if config was missing\
-                 // or if initialization failed. This ensures sample data is available for offline/demo.\
-                 console.log("Firebase not ready. Using local sample data if available from fallback.");\
-                 if(Object.keys(classData).length === 0) \{ // If still no data (e.g. fallback in initFirebase didn't run or was empty)\
-                    addSampleDataAsFallback();\
-                 \}\
-            \}\
-            \
-            // Determine which class to select initially\
-            const savedCurrentClass = loadCurrentClassSelectionFromLocalStorage();\
-            if (classData[FIXED_CLASS_NAME]) \{ // Prioritize the fixed class name if its data exists\
-                currentClass = FIXED_CLASS_NAME;\
-            \} else if (savedCurrentClass && classData[savedCurrentClass]) \{ // Then try last saved class\
-                currentClass = savedCurrentClass;\
-            \} else if (Object.keys(classData).length > 0) \{ // Then first available class\
-                currentClass = Object.keys(classData)[0];\
-            \} else \{\
-                currentClass = null; // No class available\
-            \}\
-            \
-            // Ensure FIXED_CLASS_NAME is selected if its data exists, overriding other choices unless it's already currentClass\
-            if (classData[FIXED_CLASS_NAME] && (!currentClass || currentClass !== FIXED_CLASS_NAME)) \{\
-                currentClass = FIXED_CLASS_NAME;\
-            \}\
-\
-            updateClassButtons(); // Update UI for class buttons\
-            if (currentClass) \{\
-                selectClass(currentClass); // Select the determined class\
-            \} else \{\
-                updateStudentSearchDropdowns(); // If no class, ensure dropdowns are in initial state\
-            \}\
-        \}\
-\
-        // Initialize the application once the DOM is fully loaded\
-        document.addEventListener('DOMContentLoaded', init);\
-    </script>\
-</body>\
-</html>\
-\
-}
+                    if (students && students.length > 0) { // Ensure students were processed
+                        await saveClassToFirestore(targetClassName, students); // Save to Firebase
+                        classData[targetClassName] = students; // Update local data store
+                        
+                        closeImportModal();
+                        updateClassButtons(); // Refresh class buttons on main page
+                        selectClass(targetClassName); // Automatically select the newly imported class
+                        showAlert(`${targetClassName} 資料匯入並儲存成功！`, 'success');
+                    } else {
+                         showAlert(`處理 ${targetClassName} CSV 資料失敗，未找到有效學生或檔案格式錯誤。`, 'error');
+                    }
+                } catch (error) {
+                    console.error("CSV 匯入錯誤:", error);
+                    showAlert(`匯入失敗：${error.message}`, 'error');
+                }
+            };
+            reader.onerror = function() {
+                console.error("FileReader 錯誤:", reader.error);
+                showAlert('讀取檔案失敗。', 'error');
+            };
+            reader.readAsText(file); // Read file as text
+        }
+
+        // Process raw CSV text into an array of student objects
+        function processCSVData(csvText, targetClassName) { 
+            const lines = csvText.split(/\r\n|\n/).filter(line => line.trim()); // Split into lines, remove empty lines
+            if (lines.length < 2) throw new Error("CSV 檔案至少需要包含標頭和一行資料。");
+
+            const headers = parseCSVLine(lines[0]); // Parse the header row
+            // Check for mandatory 'Email' column (case-insensitive)
+            if (!headers.map(h => h.trim().toLowerCase()).includes('email')) {
+                throw new Error("CSV 檔案中缺少 'Email' 欄位。請確認您的 CSV 檔案包含此欄位。");
+            }
+
+            const students = [];
+            for (let i = 1; i < lines.length; i++) { // Start from second line (data)
+                const values = parseCSVLine(lines[i]);
+                if (values.length === headers.length) { // Ensure data row has same number of columns as header
+                    const student = {};
+                    headers.forEach((header, index) => {
+                        const cleanHeader = header.trim(); // Trim whitespace from header
+                        const value = values[index] ? values[index].trim() : ''; // Trim whitespace from value
+                        const lowerCleanHeader = cleanHeader.toLowerCase(); // For case-insensitive matching
+
+                        // Map CSV headers to student object properties
+                        switch(lowerCleanHeader) {
+                            case '座號': student.seatNumber = value; break;
+                            case '姓名': student.name = value; break;
+                            case '學號': student.id = value; break;
+                            case 'email': student.email = value; break; // Ensure email is captured
+                            case '數學ⅳ': case '數學iv': student.math4 = value; break;
+                            case '地理': student.geography = value; break;
+                            case '應用力學': student.appliedMechanics = value; break;
+                            case '國語文ⅳ': case '國語文iv': student.chinese4 = value; break;
+                            case '英語文ⅳ': case '英語文iv': student.english4 = value; break;
+                            case '柴油引擎原理': student.dieselEnginePrinciples = value; break;
+                            case '班排名': student.classRank = value; break;
+                            case '科組排名': student.departmentGroupRank = value; break;
+                            case '科年排名': student.departmentYearRank = value; break;
+                            case '一般總分': student.generalTotalScore = value; break;
+                            case '一般平均': student.generalAverageScore = value; break;
+                            case '加權總分': student.weightedTotalScore = value; break;
+                            case '加權平均': student.weightedAverageScore = value; break;
+                            // Add other subject mappings here if needed
+                            default: break; // Ignore other columns
+                        }
+                    });
+                    // Basic validation for essential student fields
+                    if (student.id && student.name && student.seatNumber && student.email) {
+                        students.push(student);
+                    } else {
+                        console.warn("因缺少必要欄位 (學號, 姓名, 座號, Email) 而跳過此學生資料:", student, "於第", i + 1, "行");
+                    }
+                } else {
+                     console.warn(`因欄位數 (${values.length}) 不符標頭數 (${headers.length}) 而跳過第 ${i+1} 行。`);
+                }
+            }
+            if (students.length === 0 && lines.length > 1) { // If there were data lines but no valid students processed
+                console.warn("CSV 檔案中未找到有效的學生資料。請檢查欄位名稱與內容。");
+                // Optionally throw an error here or return null to indicate failure
+                // throw new Error("CSV 檔案中未找到有效的學生資料。");
+                return null; 
+            }
+            return students; 
+        }
+
+        // Parses a single line of CSV, handling quoted fields and escaped quotes.
+        function parseCSVLine(line) { 
+            const result = [];
+            let startPos = 0;
+            let inQuotes = false;
+            for (let i = 0; i < line.length; i++) {
+                if (line[i] === '"') {
+                    // If it's an escaped quote (two double quotes), skip the first one
+                    if (inQuotes && i + 1 < line.length && line[i+1] === '"') { 
+                        i++; 
+                    } else { // Otherwise, toggle the inQuotes state
+                        inQuotes = !inQuotes; 
+                    }
+                } else if (line[i] === ',' && !inQuotes) { // If it's a comma and not inside quotes, it's a field delimiter
+                    let field = line.substring(startPos, i);
+                    // Remove surrounding quotes if they exist (and are not escaped)
+                    if (field.startsWith('"') && field.endsWith('"')) {
+                        field = field.substring(1, field.length - 1);
+                    }
+                    result.push(field.replace(/""/g, '"')); // Replace escaped double quotes with single double quote
+                    startPos = i + 1; // Move start position for next field
+                }
+            }
+            // Add the last field
+            let lastField = line.substring(startPos);
+            if (lastField.startsWith('"') && lastField.endsWith('"')) {
+                lastField = lastField.substring(1, lastField.length - 1);
+            }
+            result.push(lastField.replace(/""/g, '"'));
+            return result;
+        }
+
+        // Update the class selection buttons on the main page
+        function updateClassButtons() {
+            classButtons.innerHTML = ''; // Clear existing buttons
+            const classNames = Object.keys(classData);
+
+            if (classNames.length === 0) {
+                const message = document.createElement('p');
+                message.className = 'text-gray-500 text-sm';
+                message.textContent = '目前無已匯入的成績資料。請使用上方按鈕匯入。';
+                classButtons.appendChild(message);
+                updateStudentSearchDropdowns(); // Ensure dropdowns are cleared/disabled
+                return;
+            }
+
+            classNames.forEach(className => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                // Apply 'active' styles if this is the currently selected class
+                button.className = `class-badge px-4 py-2 rounded-full text-sm font-medium transition-colors duration-150 ease-in-out ${currentClass === className ? 'bg-indigo-600 text-white border border-transparent active' : 'bg-gray-100 text-gray-800 border border-gray-200 hover:bg-indigo-100 hover:text-indigo-800'}`;
+                button.textContent = className;
+                button.onclick = () => selectClass(className);
+                classButtons.appendChild(button);
+            });
+        }
+
+        // Handle selection of a class
+        function selectClass(className) {
+            currentClass = className;
+            saveCurrentClassSelectionToLocalStorage(className); // Persist selection
+
+            // Update styles for all class buttons to reflect the new selection
+            document.querySelectorAll('#classButtons .class-badge').forEach(badge => {
+                const isSelected = badge.textContent === className;
+                badge.classList.toggle('bg-indigo-600', isSelected);
+                badge.classList.toggle('text-white', isSelected);
+                badge.classList.toggle('border-transparent', isSelected);
+                badge.classList.toggle('active', isSelected); // For box-shadow
+                badge.classList.toggle('bg-gray-100', !isSelected);
+                badge.classList.toggle('text-gray-800', !isSelected);
+                badge.classList.toggle('border-gray-200', !isSelected);
+                badge.classList.toggle('hover:bg-indigo-100', !isSelected);
+                badge.classList.toggle('hover:text-indigo-800', !isSelected);
+            });
+
+            // Reset search results and form fields
+            resultsSection.classList.add('hidden');
+            noResultsMessage.classList.add('hidden');
+            resultsTableHeader.innerHTML = '';
+            resultsTableBody.innerHTML = '';
+            studentEmailInput.value = '';
+            emailError.classList.add('hidden');
+            updateStudentSearchDropdowns(); // Populate dropdowns for the new class
+        }
+
+        // Update student ID and Name dropdowns based on the selected class
+        function updateStudentSearchDropdowns() { 
+            studentIdDropdown.innerHTML = '';   // Clear ID dropdown
+            studentNameDropdown.innerHTML = ''; // Clear Name dropdown
+            studentEmailInput.value = '';       // Clear Email input
+            emailError.classList.add('hidden'); // Hide email error
+
+            // Add default placeholder options
+            const defaultIdOption = document.createElement('option');
+            defaultIdOption.value = ""; defaultIdOption.textContent = "請選擇學號";
+            studentIdDropdown.appendChild(defaultIdOption);
+            const defaultNameOption = document.createElement('option');
+            defaultNameOption.value = ""; defaultNameOption.textContent = "請選擇姓名";
+            studentNameDropdown.appendChild(defaultNameOption);
+
+            if (currentClass && classData[currentClass]) {
+                const studentsInClass = [...classData[currentClass]]; // Create a copy to sort
+                // Sort students by seat number, then by ID
+                studentsInClass.sort((a, b) => {
+                    const seatA = parseInt(a.seatNumber, 10); 
+                    const seatB = parseInt(b.seatNumber, 10);
+                    if (!isNaN(seatA) && !isNaN(seatB)) { // If both seat numbers are valid numbers
+                        if (seatA < seatB) return -1; 
+                        if (seatA > seatB) return 1;
+                    } else if (!isNaN(seatA)) { // Only A is a number, A comes first
+                        return -1;
+                    } else if (!isNaN(seatB)) { // Only B is a number, B comes first
+                        return 1;
+                    }
+                    // Fallback to ID sort if seat numbers are same or not numbers
+                    if (a.id < b.id) return -1; 
+                    if (a.id > b.id) return 1;
+                    return 0;
+                });
+
+                studentsInClass.forEach(student => {
+                    if (student.id) { // Add to ID dropdown
+                        const optionId = document.createElement('option');
+                        optionId.value = student.id;
+                        optionId.textContent = `${student.seatNumber || '無座號'} - ${student.id}`;
+                        studentIdDropdown.appendChild(optionId);
+                    }
+                    if (student.name) { // Add to Name dropdown
+                        const optionName = document.createElement('option');
+                        optionName.value = student.name; // Value is name
+                        optionName.textContent = `${student.seatNumber || '無座號'} - ${student.name} (${student.id})`;
+                        optionName.dataset.studentId = student.id; // Store ID in dataset for syncing
+                        studentNameDropdown.appendChild(optionName);
+                    }
+                });
+            } else {
+                // If no class selected or no data for class, update placeholder text
+                studentIdDropdown.options[0].textContent = "請先選擇班級";
+                studentNameDropdown.options[0].textContent = "請先選擇班級";
+            }
+        }
+
+        // Sync Name dropdown when ID dropdown changes
+        function syncNameToId() { 
+            const selectedId = studentIdDropdown.value;
+            studentEmailInput.value = ''; emailError.classList.add('hidden'); // Clear email on change
+
+            if (selectedId && currentClass && classData[currentClass]) {
+                const student = findStudentById(selectedId); // Find student by the selected ID
+                if (student) {
+                    // Find the matching option in the Name dropdown (using dataset.studentId)
+                    for(let i=0; i < studentNameDropdown.options.length; i++) {
+                        if(studentNameDropdown.options[i].dataset.studentId === student.id) {
+                            studentNameDropdown.selectedIndex = i; 
+                            break;
+                        }
+                    }
+                } else { 
+                    studentNameDropdown.value = ""; // If student not found (should not happen if data is consistent)
+                }
+            } else if (!selectedId) { // If "請選擇學號" is chosen
+                studentNameDropdown.value = ""; 
+            }
+        }
+
+        // Sync ID dropdown when Name dropdown changes
+        function syncIdToName() { 
+            const selectedNameOption = studentNameDropdown.options[studentNameDropdown.selectedIndex];
+            studentEmailInput.value = ''; emailError.classList.add('hidden'); // Clear email on change
+
+            if (selectedNameOption && selectedNameOption.value && currentClass && classData[currentClass]) {
+                const studentIdToSync = selectedNameOption.dataset.studentId; // Get ID from dataset
+                if(studentIdToSync) { 
+                    studentIdDropdown.value = studentIdToSync; 
+                } else { // Fallback if dataset.studentId is missing (should not happen with current setup)
+                    const student = findStudentByName(selectedNameOption.value);
+                    if (student) studentIdDropdown.value = student.id; else studentIdDropdown.value = "";
+                }
+            } else if (!selectedNameOption || !selectedNameOption.value) { // If "請選擇姓名" is chosen
+                studentIdDropdown.value = ""; 
+            }
+        }
+
+        // Update the list of classes in the "Manage Classes" modal
+        function updateClassesList() { 
+            classesList.innerHTML = ''; // Clear current list
+            const classNames = Object.keys(classData);
+
+            if (classNames.length === 0) {
+                const messageItem = document.createElement('li');
+                messageItem.className = 'p-3 text-center text-gray-500';
+                messageItem.textContent = '尚未匯入任何班級資料';
+                classesList.appendChild(messageItem); 
+                return;
+            }
+
+            classNames.forEach(className => {
+                const listItem = document.createElement('li');
+                listItem.className = 'flex justify-between items-center p-3 hover:bg-gray-50';
+                
+                const classInfo = document.createElement('div');
+                classInfo.innerHTML = `<p class="font-medium text-gray-800">${className}</p><p class="text-sm text-gray-500">${classData[className] ? classData[className].length : 0} 位學生</p>`;
+                
+                const deleteButton = document.createElement('button');
+                deleteButton.type = 'button';
+                deleteButton.className = 'text-red-500 hover:text-red-700 p-1 rounded-md hover:bg-red-100 transition-colors';
+                deleteButton.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>`;
+                deleteButton.setAttribute('aria-label', `刪除 ${className} 班級`);
+                deleteButton.onclick = () => deleteClass(className); 
+                
+                listItem.appendChild(classInfo);
+                listItem.appendChild(deleteButton);
+                classesList.appendChild(listItem);
+            });
+        }
+
+        // Delete a class (from local data and Firestore)
+        async function deleteClass(className) { 
+            if (confirm(`確定要刪除 "${className}" 的所有學生資料嗎？此操作將從資料庫中永久移除，無法復原。`)) {
+                await deleteClassFromFirestore(className); // Delete from Firebase
+                delete classData[className]; // Delete from local store
+
+                // If the deleted class was the currently selected one, select another or none
+                if (currentClass === className) {
+                    currentClass = Object.keys(classData)[0] || null; // Select first available, or null
+                    if (currentClass) {
+                        selectClass(currentClass);
+                    } else {
+                        // No classes left, clear dropdowns and local storage for current class
+                        updateStudentSearchDropdowns(); 
+                        saveCurrentClassSelectionToLocalStorage(null); 
+                    }
+                }
+                updateClassesList();    // Refresh list in manage modal
+                updateClassButtons();   // Refresh buttons on main page
+
+                // If no class is selected after deletion, hide results
+                if (!currentClass) {
+                    resultsSection.classList.add('hidden');
+                    noResultsMessage.classList.add('hidden');
+                    resultsTableHeader.innerHTML = '';
+                    resultsTableBody.innerHTML = '';
+                }
+                showAlert(`班級 "${className}" 已成功刪除。`, 'success');
+            }
+        }
+
+        // Save the currently selected class name to localStorage
+        function saveCurrentClassSelectionToLocalStorage(className) {
+            try {
+                if (className) {
+                    localStorage.setItem('gradeSystemCurrentClass_Gloria_v5', className);
+                } else {
+                    localStorage.removeItem('gradeSystemCurrentClass_Gloria_v5');
+                }
+            } catch (e) {
+                console.error('無法儲存目前班級選擇到 localStorage:', e);
+            }
+        }
+
+        // Load the last selected class name from localStorage
+        function loadCurrentClassSelectionFromLocalStorage() {
+            try {
+                return localStorage.getItem('gradeSystemCurrentClass_Gloria_v5');
+            } catch (e) {
+                console.error('無法從 localStorage 載入目前班級選擇:', e);
+                return null;
+            }
+        }
+        
+        // Add sample data as a fallback if Firebase is unavailable or empty initially
+        function addSampleDataAsFallback() { 
+            // Only add if classData is empty AND db is not available (or initial load failed)
+            if (Object.keys(classData).length > 0 && db) return; 
+
+            // Define sample data structure
+            classData = {
+                "汽車二甲 (範例資料)": [ 
+                    { seatNumber: "1", name: "王大明", id: "A001", email: "wang.daming@example.com", math4: "88", geography: "75", appliedMechanics: "90", chinese4: "82", english4: "79", dieselEnginePrinciples: "91", classRank: "2", departmentGroupRank: "3", departmentYearRank: "5", generalTotalScore: "605", generalAverageScore: "86.43", weightedAverageScore: "87.00", weightedTotalScore: "609"  },
+                    { seatNumber: "5", name: "李小美", id: "A005", email: "li.xiaomei@example.com", math4: "72", geography: "85", appliedMechanics: "78", chinese4: "88", english4: "92", dieselEnginePrinciples: "80", classRank: "8", departmentGroupRank: "12", departmentYearRank: "20", generalTotalScore: "595", generalAverageScore: "85.00", weightedAverageScore: "85.50", weightedTotalScore: "598.5" }
+                ],
+                 "電機一乙 (範例資料)": [ 
+                    { seatNumber: "3", name: "陳志明", id: "B003", email: "chen.zhiming@example.com", math4: "92", geography: "80", appliedMechanics: "85", chinese4: "78", english4: "88", dieselEnginePrinciples: "N/A", classRank: "1", departmentGroupRank: "1", departmentYearRank: "2", generalTotalScore: "623", generalAverageScore: "89.00", weightedAverageScore: "89.50", weightedTotalScore: "626.5"  }
+                ]
+            };
+            console.log("Fallback sample data loaded locally for demonstration.");
+        }
+
+        // Main initialization function, called on DOMContentLoaded
+        async function init() {
+            const firebaseReady = await initializeFirebase();
+
+            if (firebaseReady) {
+                classData = await loadAllClassesFromFirestore(); // Load data from Firebase
+                if (Object.keys(classData).length === 0) {
+                    console.log("Firestore is empty. Please use the import button to add data for '" + FIXED_CLASS_NAME + "' or manage other classes.");
+                    // No automatic sample data addition to Firestore on initial empty load.
+                    // User is guided to import data.
+                    // If you still want sample data locally if Firestore is empty, call addSampleDataAsFallback() here.
+                    // addSampleDataAsFallback(); // Uncomment if local sample needed when Firestore is empty
+                }
+            } else {
+                 // Firebase not ready, addSampleDataAsFallback should have been called within initializeFirebase if config was missing
+                 // or if initialization failed. This ensures sample data is available for offline/demo.
+                 console.log("Firebase not ready. Using local sample data if available from fallback.");
+                 if(Object.keys(classData).length === 0) { // If still no data (e.g. fallback in initFirebase didn't run or was empty)
+                    addSampleDataAsFallback();
+                 }
+            }
+            
+            // Determine which class to select initially
+            const savedCurrentClass = loadCurrentClassSelectionFromLocalStorage();
+            if (classData[FIXED_CLASS_NAME]) { // Prioritize the fixed class name if its data exists
+                currentClass = FIXED_CLASS_NAME;
+            } else if (savedCurrentClass && classData[savedCurrentClass]) { // Then try last saved class
+                currentClass = savedCurrentClass;
+            } else if (Object.keys(classData).length > 0) { // Then first available class
+                currentClass = Object.keys(classData)[0];
+            } else {
+                currentClass = null; // No class available
+            }
+            
+            // Ensure FIXED_CLASS_NAME is selected if its data exists, overriding other choices unless it's already currentClass
+            if (classData[FIXED_CLASS_NAME] && (!currentClass || currentClass !== FIXED_CLASS_NAME)) {
+                currentClass = FIXED_CLASS_NAME;
+            }
+
+            updateClassButtons(); // Update UI for class buttons
+            if (currentClass) {
+                selectClass(currentClass); // Select the determined class
+            } else {
+                updateStudentSearchDropdowns(); // If no class, ensure dropdowns are in initial state
+            }
+        }
+
+        // Initialize the application once the DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
+
